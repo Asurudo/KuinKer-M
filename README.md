@@ -1,3 +1,3 @@
 # KuinKer
 
-DLU ACMer Asurudo Jyo の template
+DLU ACMer Asurudo Jyo の template storehouse
