@@ -45,6 +45,10 @@ $tag$ : `数论`  `贪心`   `因数枚举`
 
 时间复杂度$O(n)$，不过常数略大。
 
+
+
+## 完整代码
+
 ```c++
 #include <bits/stdc++.h>
 using namespace std;
