@@ -2,7 +2,7 @@
 
 来源：https://codeforces.com/contest/1263/problem/D
 
-$tag:$ `并查集` `字符串哈希` 
+$tag:$ `并查集` `字符串哈希`  `隐式图`
 
 ## 题目大意
 
