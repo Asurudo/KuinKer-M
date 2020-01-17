@@ -115,6 +115,7 @@ struct Djs
 		x = find(x);
 		y = find(y);
 		if(x==y) return ;
+        //若之前未记录以 x 为根的树与 y连接后的大小，则更新，y为根同理
 		int szx = sz[x];
 		int szy = sz[y];
 		sz[x] += szy;
@@ -147,21 +148,25 @@ int main()
 		{
 			int x, y;
 			scanf("%d%d",&x,&y);
+            //一个为a，一个不为b，说明只连a不连b，标记上
 			if(x==a && y!=b)
 				djs.toA[y] = 1;
 			else if(y==a && x!=b)
 				djs.toA[x] = 1;
+            //同上
 			else if(x==b && y!=a)
 				djs.toB[y] = 1;
 			else if(y==b && x!=a)
 				djs.toB[x] = 1;
+            //若两个都不是a,b，则将他们连起来，处于同一连通块
 			else if(y!=b && x!=a && y!=a && x!=b)
 				djs.unite(x,y);
 		}
 		
 		_for(i,1,n+1)
 		{
-			if(djs.toA[i])
+			//如果一个点和A或B连，则他的最终根也与A或B连，具有传递性
+            if(djs.toA[i])
 				djs.toA[djs.find(i)] = 1;
 			if(djs.toB[i])
 				djs.toB[djs.find(i)] = 1;
@@ -170,7 +175,8 @@ int main()
 		ll cnta = 0,cntb = 0;
 		_for(i,1,n+1)
 		{
-			if(djs.par[i]==i && djs.toA[i] && !djs.toB[i])
+			//如果i为根且只跟a或b连，则就是题解中只与一点相连的连通块（以i为代表）
+            if(djs.par[i]==i && djs.toA[i] && !djs.toB[i])
 				cnta += djs.sz[i];
 			else if(djs.par[i]==i && djs.toB[i] && !djs.toA[i])
 				cntb += djs.sz[i];
