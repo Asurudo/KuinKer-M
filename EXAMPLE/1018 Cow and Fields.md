@@ -76,7 +76,7 @@ $$
 
 ## 完整代码
 
-```
+```c++
 #include <bits/stdc++.h>
 using namespace std;
 typedef long long ll;
