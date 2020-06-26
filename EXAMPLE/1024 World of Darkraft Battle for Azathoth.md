@@ -1,4 +1,4 @@
-# 1003  World of Darkraft: Battle for Azathoth
+# 1024  World of Darkraft: Battle for Azathoth
 
 来源： https://codeforces.com/contest/1321/problem/E
 
