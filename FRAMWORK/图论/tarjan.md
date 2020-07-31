@@ -8,8 +8,6 @@
 
 
 
-
-
 ## 有向图
 
 tarjan 算法在找有向图强连通分量的时候，其实是在找环。根据时间戳的先后到达一个点的时候，所关心的是这个点有没有边能使他到达时间戳靠前的他的祖先，或者到达一个能到达他祖先的点。所以我们就需要维护一个栈，所以当我们遍历到节点 $x$ 的时候，这个栈里包括
@@ -94,8 +92,208 @@ struct dirGtarjan
 				if(dgt.c[x] == dgt.c[y])
 					continue;
 				outg.add(dgt.c[x], dgt.c[y]);
+                outg.m ++;
 			}
 	}
 } dgt;
+```
+
+
+
+## 无向图
+
+### 桥 && 边双连通分量
+
+
+
+```c++
+//记得初始化g.n和g.m，保证链式前向星的tot=1,++后从2开始！
+struct udirGedgetarjan
+{
+	//时间戳和追溯值
+	int dfn[maxn], low[maxn];
+	//时间戳累加值
+	int num, root;
+	//是否是桥
+	bool bridge[maxe];
+	vector<pair<int,int>> edge;
+	//c[x]是x所属边双编号，edcc是边双总数
+	int c[maxn], edcc;
+	//边双联通的点集
+	vector<int> eDCC[maxn];
+	vector<pair<int,int>> tarjanedge(const G& g)
+	{
+		_for(x,1,g.n+1)
+		if(!dfn[x])
+			tjeg(g,x,0);
+		for(int i = 2; i < g.tot; i += 2)
+		{
+			if(bridge[i])
+				edge.pb({g.ver[i],g.ver[i^1]});
+		}
+		_for(i,1,g.n+1)
+		if(!c[i])
+		{
+			edcc ++;
+			getedcc(g,i);
+		}
+		return edge;
+	}
+	void tjeg(const G& g, int x,int in_edge)
+	{
+		dfn[x] = low[x] = ++num;
+		for(int i = g.head[x]; i; i = g.Next[i])
+		{
+			int y = g.ver[i];
+			if(!dfn[y])
+			{
+				tjeg(g,y,i);
+				low[x] = min(low[x],low[y]);
+
+				if(low[y] > dfn[x])
+					bridge[i] = bridge[i^1] = true;
+			}
+			else if(i != (in_edge^1))
+				low[x] = min(low[x],dfn[y]);
+		}
+	}
+	void getedcc(const G& g,int x)
+	{
+		c[x] = edcc;
+		eDCC[edcc].pb(x);
+		for(int i = g.head[x]; i; i = g.Next[i])
+		{
+			int y = g.ver[i];
+			if(c[y] || bridge[i])
+				continue;
+			getedcc(g,y);
+		}
+	}
+	//先跑tarjan和getedcc
+	void eDCCsuo(const G &orig, G& outg)
+	{
+		outg.n = edcc;
+		outg.tot = 1;
+		_for(x,1,orig.n+1)
+		for(int i = orig.head[x]; i; i = orig.Next[i])
+		{
+			int y = orig.ver[i];
+			if(c[x] == c[y])
+				continue;
+			outg.add(c[x], c[y]);
+			outg.m ++;
+		}
+	}
+} uedgt;
+```
+
+
+
+### 割点 && 点双连通分量
+
+```c++
+//记得初始化g.n和g.m，保证链式前向星的tot=1,++后从2开始！
+//割点去一下自环
+struct udirGnodetarjan
+{
+	//时间戳和追溯值
+	int dfn[maxn], low[maxn], stack[maxn];
+	//时间戳累加值
+	int num, root, top;
+	//是否是割点
+	bool cut[maxn];
+	vector<int> point;
+	//c[x]是x所属点双编号，vdcc是边双总数
+	int c[maxn], vdcc;
+	//点双联通的点集
+	vector<int> vDCC[maxn];
+	//返回割点
+	void clear(int x)
+	{
+		_for(i,0,x+2)
+			vDCC[i].clear();
+		num = root = top = vdcc = 0;
+		memset(cut,0,sizeof(cut));
+		memset(dfn,0,sizeof(dfn));
+		memset(low,0,sizeof(low));
+		memset(stack,0,sizeof(stack));
+	}
+	vector<int> tarjanpt(const G& g)
+	{
+		_for(x,1,g.n+1)
+		if(!dfn[x])
+			root = x, tjpt(g,x);
+		_for(i,1,g.n+1)
+		{
+			if(cut[i])
+				point.pb(i);
+		}
+		return point;
+	}
+	void tjpt(const G& g, int x)
+	{
+		dfn[x] = low[x] = ++num;
+		stack[++top] = x;
+		if(x == root && !g.head[x])
+		{
+			vDCC[++vdcc].pb(x);
+			c[x] = vdcc;
+			return ;
+		}
+		int flag = 0;
+		for(int i = g.head[x]; i; i = g.Next[i])
+		{
+			int y = g.ver[i];
+			if(!dfn[y])
+			{
+				tjpt(g,y);
+				low[x] = min(low[x],low[y]);
+
+				if(low[y] >= dfn[x])
+				{
+					flag ++;
+					if(x != root || flag > 1)
+						cut[x] = true;
+					vdcc ++;
+					int z;
+					do
+					{
+						z = stack[top--];
+						vDCC[vdcc].pb(z);
+					}
+					while(z != y);
+					vDCC[vdcc].pb(x);
+				}
+			}
+			else
+				low[x] = min(low[x],dfn[y]);
+		}
+	}
+	//先跑tarjan
+	void vDCCsuo(const G &orig, G& outg)
+	{
+		int new_id[maxn];
+		outg.n = vdcc;
+		_for(i,1,orig.n+1)
+		{
+			if(cut[i])
+				new_id[i] = ++outg.n;
+		}
+		outg.tot = 1;
+		_for(i,1,vdcc+1)
+		_for(j,0,vDCC[i].size())
+		{
+			int x = vDCC[i][j];
+			if(cut[x])
+			{
+				outg.add(i, new_id[x]);
+				outg.add(new_id[x], i);
+				outg.m ++;
+			}
+			else
+				c[x] = i;
+		}
+	}
+} undgt;
 ```
 
