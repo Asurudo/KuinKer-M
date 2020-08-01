@@ -203,10 +203,12 @@ struct udirGnodetarjan
 	//是否是割点
 	bool cut[maxn];
 	vector<int> point;
-	//c[x]是x所属点双编号，vdcc是边双总数
+	//c[x]是x所属点双编号，vdcc是点双总数
 	int c[maxn], vdcc;
 	//点双联通的点集
 	vector<int> vDCC[maxn];
+	//缩点后,old_id[x]表示缩点后的图的该割点在原来的图中的编号 
+	int old_id[maxn];
 	//返回割点
 	void clear(int x)
 	{
@@ -260,9 +262,9 @@ struct udirGnodetarjan
 					{
 						z = stack[top--];
 						vDCC[vdcc].pb(z);
-					}
-					while(z != y);
-					vDCC[vdcc].pb(x);
+						c[z] = vdcc;
+					}while(z != y);
+						vDCC[vdcc].pb(x), c[x] = vdcc;
 				}
 			}
 			else
@@ -277,7 +279,10 @@ struct udirGnodetarjan
 		_for(i,1,orig.n+1)
 		{
 			if(cut[i])
+			{
 				new_id[i] = ++outg.n;
+				old_id[outg.n] = i;
+			}
 		}
 		outg.tot = 1;
 		_for(i,1,vdcc+1)
@@ -290,8 +295,6 @@ struct udirGnodetarjan
 				outg.add(new_id[x], i);
 				outg.m ++;
 			}
-			else
-				c[x] = i;
 		}
 	}
 } undgt;
