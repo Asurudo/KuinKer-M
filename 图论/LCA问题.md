@@ -81,8 +81,12 @@ struct BitIn
 				//y的爸爸是x 
 				f[y][0] = x;
 				//更新y的列祖列宗 
+                //dist[x][k]表示从该节点想要到达距离自己2^k的祖先，需要经过的最大边 
+				//dist[y][0] = g.val[i];
 				_for(j,1,bitmaxd+1)
 					f[y][j] = f[f[y][j-1]][j-1];
+                //dp[y,y+2^j] = min(dp[y,y+2^(j-1)],dp[y+2^(j-1),y+2^j]) 
+				//dist[y][j] = min(dist[y][j-1],dist[f[y][j-1]][j-1]);
 				q.push(y);
 			}
 		}
@@ -95,13 +99,17 @@ struct BitIn
 		//让x的深度与y相同 
 		_rep(i,bitmaxd,-1)
 			if(d[f[x][i]] >= d[y])
+            //ans = min(ans,dist[x][i])
 				x = f[x][i];
 		//若x==y则x和y在一条链上，说明LCA(x,y)=y 
 		if(x==y) return y;
 		//否则x和y一起跳到LCA(x,y)的儿子节点 
 		_rep(i,bitmaxd,-1)
 			if(f[x][i] != f[y][i])
+                //ans = min(ans,dist[x][i]);
+				//ans = min(ans,dist[y][i]);
 				x = f[x][i],y = f[y][i];
+        //return min(ans,min(dist[x][0],dist[y][0]));
 		return f[x][0];
 	}
 }b1;
@@ -127,3 +135,55 @@ int main()
 	return 0;
 }
 ```
+
+## 转欧拉序上ST表
+
+```c++
+struct lca
+{
+	int MIN[maxn*2][25];
+	int logn[maxn*2];
+	int opos = 0;
+	//深度是欧拉序列对应结点的深度 
+	int oula[maxn*2], ore[maxn*2], dep[maxn*2];
+	void _init(int x,int fa,int d)
+	{
+        ore[++opos] = x;
+        oula[x] = opos;
+        dep[opos] = d;
+		for(int i = g.head[x]; i; i = g.Next[i])
+		{
+			int y = g.ver[i];
+			if(y==fa)
+				continue;
+			_init(y,x,d+1);
+            ore[++opos] = x;
+            dep[opos] = d;
+		}
+	}
+	void build(int rt)
+	{
+		_init(rt,0,1);
+		logn[1] = 0;
+		logn[2] = 1;
+		_for(i,3,maxn*2)
+			logn[i] = logn[i/2]+1;
+		_for(i,1,opos+1)
+			MIN[i][0] = i;
+		_for(j,1,25)
+		for(int i = 1; i+(1<<j)-1 <= opos; i ++)
+			MIN[i][j] = dep[MIN[i][j-1]] < dep[MIN[i+(1<<(j-1))][j-1]]
+						? MIN[i][j-1] : MIN[i+(1<<(j-1))][j-1];
+	}
+	int ask4lca(int l,int r)
+	{
+		l = oula[l], r = oula[r];
+		if(l>r)
+			swap(l,r);
+		int k = logn[r-l+1];
+		return dep[MIN[l][k]] < dep[MIN[r-(1<<k)+1][k]]
+			   ? ore[MIN[l][k]] : ore[MIN[r-(1<<k)+1][k]];
+	}
+} L;
+```
+
