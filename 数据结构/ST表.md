@@ -11,26 +11,20 @@ $max[i][j]$ 表示从 $i$ 开始的 $2^j$ 个数中的最大值，也就是 $[i,
 ![img](https://images2018.cnblogs.com/blog/1101696/201803/1101696-20180317094520949-961365919.png)
 
 ```c++
-#include <bits/stdc++.h>
-using namespace std;
-typedef long long ll;
-#define _for(i,a,b) for(int i = (a);i < b;i ++)
-#define _rep(i,a,b) for(int i = (a);i > b;i --)
-#define INF 0x3f3f3f3f3f3f3f3f
-#define pb push_back
-#define lowbit(x) ((x)&(-x))
-#define mod 1000000007 
-#define MIKU 39
-#define maxn 1000039
 int n, m;
 ll a[maxn];
 struct STlist 
 {
 	//如果区间长度变动，则21也需要变动 
 	ll MAX[maxn][21];
-	ll MIN[maxn][21];	
+	ll MIN[maxn][21];
+	ll logn[maxn];	
 	void build()
 	{
+		logn[1] = 0;
+		logn[2] = 1;
+		_for(i,3,maxn)
+			logn[i] = logn[i/2]+1;
 		_for(i,1,n+1)
 			MAX[i][0] = MIN[i][0] = a[i];
 		_for(j,1,22)
@@ -42,12 +36,12 @@ struct STlist
 	}
 	ll ask4max(int l,int r)
 	{
-		int k = log2(r-l+1); 
+		int k = logn[r-l+1]; 
     	return max(MAX[l][k],MAX[r-(1<<k)+1][k]);
 	}
 	ll ask4min(int l,int r)
 	{
-		int k = log2(r-l+1); 
+		int k = logn[r-l+1]; 
     	return min(MIN[l][k],MIN[r-(1<<k)+1][k]);
 	}
 }ST;
@@ -61,7 +55,7 @@ int main()
 	_for(i,1,m+1)
 	{
 		int l, r;
-		l = read(), r = read();
+		scanf("%d%d",&l,&r);
 		printf("%lld\n",ST.ask4max(l,r));
 	}
 	return 0;
