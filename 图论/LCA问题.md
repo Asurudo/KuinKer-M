@@ -64,6 +64,7 @@ struct BitIn
 		//需要用到的临时队列 
 		queue<int> q;
 		//根节点深度为1，bitmaxd = log2底n n为节点数量 
+        //memset(dist,0x3f,sizeof(dist));
 		q.push(st);d[st] = 1;bitmaxd = (int)(log(g.n)/log(2)) + 1;
 		while(!q.empty())
 		{
@@ -82,7 +83,7 @@ struct BitIn
 				f[y][0] = x;
 				//更新y的列祖列宗 
                 //dist[x][k]表示从该节点想要到达距离自己2^k的祖先，需要经过的最大边 
-				//dist[y][0] = g.val[i];
+				//dist[y][0] = g.val[i];?w
 				_for(j,1,bitmaxd+1)
 					f[y][j] = f[f[y][j-1]][j-1];
                 //dp[y,y+2^j] = min(dp[y,y+2^(j-1)],dp[y+2^(j-1),y+2^j]) 
@@ -99,9 +100,10 @@ struct BitIn
 		//让x的深度与y相同 
 		_rep(i,bitmaxd,-1)
 			if(d[f[x][i]] >= d[y])
-            //ans = min(ans,dist[x][i])
+            //ans = min(ans,dist[x][i]),下面一行也是需要的
 				x = f[x][i];
 		//若x==y则x和y在一条链上，说明LCA(x,y)=y 
+        //return ans;
 		if(x==y) return y;
 		//否则x和y一起跳到LCA(x,y)的儿子节点 
 		_rep(i,bitmaxd,-1)
@@ -175,7 +177,7 @@ struct lca
 			MIN[i][j] = dep[MIN[i][j-1]] < dep[MIN[i+(1<<(j-1))][j-1]]
 						? MIN[i][j-1] : MIN[i+(1<<(j-1))][j-1];
 	}
-	int ask4lca(int l,int r)
+	int lca(int l,int r)
 	{
 		l = oula[l], r = oula[r];
 		if(l>r)
