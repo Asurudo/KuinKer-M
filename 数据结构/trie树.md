@@ -5,6 +5,7 @@
 struct trie
 {
 	int tot;
+    //maxn是字符串最大个数*字符串最大长度
 	int sum[maxn*26];
 	int trie[maxn][26];
 	void clear()
