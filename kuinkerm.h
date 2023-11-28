@@ -9,6 +9,13 @@
 
 #include <memory>
 #include <algorithm>
+#include <type_traits>
+#include <ext/rope>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/hash_policy.hpp>
+#include <ext/pb_ds/priority_queue.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+#include <ext/pb_ds/assoc_container.hpp>
 
 namespace kuinkerm{
     using ll = long long;
@@ -357,7 +364,7 @@ namespace kuinkerm{
                     else if(isLIS == "LDS" && isStrict == "LENIENT")
                         lenientLDS(), this->isLIS = false, this->isStrict = false;
                     else 
-                        throw std::runtime_error("LISLDS parameter ERROR");
+                        throw std::runtime_error("LISLDS, input parameter ERROR");
                 }
 
                 /*  返回最小边权加和
@@ -839,7 +846,438 @@ namespace kuinkerm{
             }
     };
 
-    
+    /*  并查集
+    */
+    class disjointSet{
+        private:
+            // 最多有多少个集合
+            int Maxn;
+            // 每个集合的父节点
+            std::vector<int> Parent;
+            // 每个集合的高度
+            std::vector<int> High;
+        public:
+            disjointSet(int Maxn): Maxn(Maxn){
+                Parent.resize(Maxn+1);
+                High.resize(Maxn+1);
+                
+                for(int i = 1; i < Maxn; i ++)
+                    Parent[i] = i, High[i] = 0;
+            }
+
+            // 查询集合 x 的最终父亲
+            int find(int x){
+                return Parent[x] == x ? x : Parent[x] = find(Parent[x]);
+            }
+
+            // 将集合 x 和集合 y 所属的两个集合连接起来
+            void unite(int x, int y){
+                x = find(x);
+                y = find(y);
+                if(x == y) return ;
+                if(High[x] < High[y])
+                    Parent[x] = y;
+                else{
+                    Parent[y] = x;
+                    if(High[x] == High[y])
+                        High[x] ++;
+                }
+            }
+            // 检查集合 x 和集合 y是否属于同一集合
+            bool same(int x, int y){
+                return find(x) == find(y);
+            }
+    };
+
+    /*  分块
+    */
+    class blockPartition{
+        // 数组最大长度，块的个数
+        int Maxn, blockNum;
+        // 输入数组
+        std::vector<ll> a;
+
+        // sum[i]表示第 i 段的原始加和
+        // add[i]表示第 i 段的每个元素待加值/增量标记
+        std::vector<ll> Sum, Add;
+        
+        // L[i]和R[i]表示第 i 段在原数组中的左右端点下标
+        std::vector<int> L, R;
+        
+        //pos[j]表示 原数组下标 j 在哪一段
+        std::vector<int> Pos;
+
+        blockPartition(const std::vector<ll>& a, int Maxn): a(a), Maxn(Maxn){
+            blockNum = sqrt(a.size());
+            //块怎么分搞不懂看lyd p224
+            for(int i = 1; i <= blockNum; i ++){
+                L[i] = (i-1) * blockNum + 1;
+                R[i] = i * blockNum;
+            }
+            //尾巴还有一点，多分一个块
+            if(R[blockNum] < (int)a.size()){
+                blockNum ++;
+                L[blockNum] = R[blockNum-1] + 1;
+                R[blockNum] = a.size();
+            }
+            //预处理 pos和sum
+            for(int i = 1; i <= blockNum; i ++)
+                for(int j = L[i]; j <= R[i]; j ++)
+                    Pos[j] = i, Sum[i] += a[j];
+        }
+
+        // 将区间[l, r]加上 Value
+        void change(int l, int r, ll Value){
+            //此次修改涉及[p,q]的分块
+            int p = Pos[l], q = Pos[r];
+
+            //在同一分块内
+            if(p==q)
+            {
+                //局部朴素直接加到原数组
+                for(int i = l; i <= r; i ++)
+                    a[i] += Value;
+                //总和加增量*长度
+                Sum[p] += Value*(r-l+1);
+            }
+            else
+            {
+                //除一头一尾，其余中间每一块的增量标记改变
+                for(int i = p+1; i <= q; i ++)
+                    Add[i] += Value;
+                //对头部的块朴素
+                for(int i = l; i <= R[p]; i ++)
+                    a[i] += Value;
+                Sum[p] += Value*(R[p] - l + 1);
+                //对尾部的块朴素
+                for(int i = L[q]; i <= r; i ++)
+                    a[i] += Value;
+                Sum[q] += Value*(r - L[q] + 1);
+            }
+        }
+
+        // 返回区间[l, r]的和
+        ll ask(int l, int r){
+            //此次查询涉及[p,q]的分块
+            int p = Pos[l], q = Pos[r];
+            ll ans = 0;
+            //在同一分块内
+            if(p==q){
+                for(int i = l; i <= r; i ++)
+                    ans += a[i];
+                ans += Add[p] * (r-l+1);
+            }
+            else{
+                //除一头一尾，其余中间每一块一块一块加
+                for(int i = p+1; i <= q; i ++)
+                    ans += Sum[i] + Add[i]*(R[i]-L[i]+1);
+                //对头部的块朴素
+                for(int i = l; i <= R[p]; i ++)
+                    ans += a[i];
+                ans += Add[p]*(R[p]-l+1);
+                
+                //对尾部的块朴素
+                for(int i = L[q]; i <= r; i ++)
+                    ans += a[i];
+                ans += Add[q]*(r-L[q]+1);
+            }
+            return ans;
+        }
+    };
+
+    /*  哈希
+    */
+    template<typename T1, typename T2>
+    class HashTable{
+        private:
+            // T1为键值，T2为数据
+            __gnu_pbds::gp_hash_table<T1, T2> hTable;
+
+        public:
+            // 插入一条哈希数据
+            void Insert(T1 x, T2 y){
+                hTable.insert(std::make_pair(x, y));
+            }
+
+            // 用下标访问哈希数据，如 table[x] 就是键值的对应数据
+            T2& operator[](T1 x){
+                return hTable[x];
+            }
+            const T2& operator[](T1 x) const{
+                return hTable[x];
+            }
+
+            // 返回一个指针，first为键值，second为数据
+            auto Find(T1 x){
+                return hTable.find(x);
+            }
+
+            // 删除键值x的哈希数据
+            void Erase(T1 x){
+                hTable.erase(x);
+            }
+            void Clear(){
+                hTable.clear();
+            }
+            int Size(){
+                return hTable.size();
+            }
+            bool Empty(){
+                return hTable.empty();
+            }
+    };
+
+    /*  优先队列
+    */
+    template<typename T, typename F = void>
+    class priorityQueue{
+        private:
+            using Comparator = std::function<bool(const T&, const T&)>;
+            using heapTag = __gnu_pbds::pairing_heap_tag;
+            using pqType = typename std::conditional<std::is_void<F>::value,
+                                    __gnu_pbds::priority_queue<T, Comparator, heapTag>,
+                                    __gnu_pbds::priority_queue<T, F, heapTag>>::type;
+            using pqIter = typename pqType::point_iterator;
+
+            // 传入的是否是基本类型，是否重载了调用运算符（F是否为空）
+            bool isFundamentalType, wantUseTemplate;
+            
+            // 对值的映射，方便以后根据值进行查询和更改
+            // std::map<T, std::set<pqIter>> val2PointerMp;
+
+            std::unique_ptr<pqType> Pq;
+
+        public:
+            priorityQueue(){
+                isFundamentalType = std::is_fundamental<T>::value;
+                wantUseTemplate = !std::is_void<F>::value;
+                if (false == isFundamentalType && false == wantUseTemplate){
+                    throw std::runtime_error("priorityQueue, input type is not the fundamental type and the comparision function or struct is not provided.");
+                    return ;
+                }
+                else if(true == wantUseTemplate)
+                    Pq = std::make_unique<pqType>();
+                else
+                    Pq = std::make_unique<pqType>();
+            }
+
+            priorityQueue(Comparator f){
+                isFundamentalType = std::is_fundamental<T>::value;
+                wantUseTemplate = !std::is_void<F>::value;
+                if (false == isFundamentalType && true == wantUseTemplate){
+                    throw std::runtime_error("priorityQueue, both comparision function and struct are existed, delete one of them");
+                    return ;
+                }
+                Pq = std::make_unique<__gnu_pbds::priority_queue<T, Comparator, heapTag>>(f);
+            }
+
+            auto Push(T x){
+                return Pq->push(x);
+            }
+
+            void Pop(){
+                Pq->pop();
+            }
+
+            T Top(){
+                return Pq->top();
+            }
+
+            int Size(){
+                return Pq->size();
+            }
+
+            bool Empty(){
+                return Pq->empty();
+            }
+
+            void Claer(){
+                Pq->clear();
+            }
+
+            // 传入一个指针，将Iter指向的值改为x后，再重新维护堆
+            void Modify(pqIter Iter, const T x){
+                Pq->modify(Iter, x);
+            }
+
+            // 将otherPq并入调用该方法的堆，并清空otherPq
+            void Join(priorityQueue& otherPq){                
+                Pq->join(*otherPq.Pq);
+            }
+    };
+
+    /*  旋转树
+    */
+   template<typename T, typename F = void>
+    class multiSet{
+        private:
+            using PT = std::pair<T, int>;
+            using mSTag = __gnu_pbds::rb_tree_tag;
+            using mSType = typename std::conditional<std::is_void<F>::value,
+                                    __gnu_pbds::tree<PT, __gnu_pbds::null_type, std::function<bool(const PT&, const PT&)>, mSTag, __gnu_pbds::tree_order_statistics_node_update>,
+                                    __gnu_pbds::tree<PT, __gnu_pbds::null_type, std::less<std::pair<F, int>>, mSTag, __gnu_pbds::tree_order_statistics_node_update>>::type;
+            using mSIter = typename mSType::point_iterator;
+            
+            // 传入的是否是基本类型，是否重载了调用运算符（F是否为空）
+            bool isFundamentalType, wantUseTemplate;
+            std::function<bool(const T&, const T&)> userComparator;
+            // 时间戳
+            int Dfn = 0;
+            
+            // 对值的映射，方便以后根据值进行查询和更改
+            // std::map<T, std::set<pqIter>> val2PointerMp;
+
+            std::unique_ptr<mSType> Ms;
+
+        public:
+            multiSet(){
+                isFundamentalType = std::is_fundamental<T>::value;
+                wantUseTemplate = !std::is_void<F>::value;
+                if (false == isFundamentalType && false == wantUseTemplate){
+                    throw std::runtime_error("multiSet, input type is not the fundamental type and the comparision function or struct is not provided.");
+                    return ;
+                }
+                else if(true == wantUseTemplate)
+                    Ms = std::make_unique<mSType>();
+                else
+                    Ms = std::make_unique<mSType>();
+            }
+
+            multiSet(std::function<bool(const T&, const T&)> f): userComparator(f){
+                isFundamentalType = std::is_fundamental<T>::value;
+                wantUseTemplate = !std::is_void<F>::value;
+                if (false == isFundamentalType && true == wantUseTemplate){
+                    throw std::runtime_error("multiSet, both comparision function and struct are existed, delete one of them");
+                    return ;
+                }
+                Ms = std::make_unique<__gnu_pbds::tree<PT, __gnu_pbds::null_type, std::function<bool(const PT&, const PT&)>, mSTag, __gnu_pbds::tree_order_statistics_node_update>>(
+                    [f](const PT &x,const PT &y) -> bool {
+                        if(f(x.first, y.first) ^ f(y.first, x.first))
+                            return f(x.first, y.first);
+                        else 
+                            return (bool) (x.second < y.second);
+                    }
+                );
+            }
+
+            int Size(){
+                return Ms->size();
+            }
+
+            bool Empty(){
+                return Ms->empty();
+            }
+
+            void Clear(){
+                Ms->clear();
+            }
+
+            void Insert(T x){
+                Ms->insert({x, ++Dfn});
+            }
+
+            void Erase(T x){
+                Ms->erase(Ms->lower_bound({x, 0}));
+            }
+
+            int isRank(T x){
+                return Ms->order_of_key({x, 0}) + 1;
+            }
+
+            T rankIs(int a){
+                return Ms->find_by_order(a-1)->first;
+            }
+
+            T Prev(T x){
+                return Ms->prev(Ms->lower_bound({x, 0}))->first;
+            }
+            
+            // 返回第一个大于等于x的元素
+            T lowerBound(T x){
+                return Ms->lower_bound({x, 0})->first;
+            }
+
+            // 返回第一个大于x的元素
+            T upperBound(T x){
+                return Ms->upper_bound({x, INF})->first;
+            }
+
+            // 确保被合并set的所有元素大于合并set的所有元素，合并后清空
+            void Join(multiSet& otherMs){                
+                if(userComparator(otherMs.rankIs(1), this->rankIs(this->Size())))
+                    throw std::runtime_error("multiSet, Join failed. The necessary condition for merging two sets is that all elements in the merging set must be smaller than all elements in the target set.");
+                Ms->join(*otherMs.Ms);
+            }
+
+            // 分裂，小于x的元素留住，大于等于x的元素分裂出去
+            void Split(T x, multiSet& otherMs){
+                otherMs.Clear();
+                Ms->split({x, 0}, *otherMs.Ms);
+            }
+    };
+
+        /*  可变长数组
+        */
+        template<typename T>
+        class Vector{
+            private:
+                using rpIter = typename __gnu_cxx::rope<T>::iterator;
+                __gnu_cxx::rope<T> Rp;
+                
+            public:
+                Vector(){}
+                Vector(__gnu_cxx::rope<T> Rp): Rp(Rp) {}
+
+                const T operator[](std::size_t index) const {
+                    return Rp[index];
+                }
+
+                void pushBack(T x){
+                    Rp.push_back(x);
+                }
+                void popBack(T x){
+                    Rp.pop_back();
+                }
+
+                // 从 Pos 位置开始插入 x
+                void Insert(int Pos, Vector<T> x){
+                    Rp.insert(Pos, x);
+                }
+
+                // 从 Pos 位置开始删掉长度为 Len 的元素
+                void Erase(int Pos, int Len){
+                    Rp.erase(Pos, Len);
+                }
+
+                // 从 Pos 位置开始提取长度为 Len 的子串，返回一个 Vector
+                Vector<T> Substr(int Pos, int Len){
+                    return Vector<T>(Rp.substr(Pos, Len));
+                }
+
+                // 替换 Pos 处的元素为 x
+                void Replace(int Pos, T x){
+                    Rp.replace(Pos, x);
+                }
+
+                // 从 Pos 位置开始替换为 x
+                void Replace(int L, Vector<T> x){
+                    Rp.replace(L, x.Size(), x);
+                }
+                void Clear(){
+                    Rp.clear();
+                }
+                int Size(){
+                    return Rp.size();
+                }
+                bool Empty(){
+                    return Rp.empty();
+                }
+
+                Vector<T> operator+(const Vector<T>& other) const {
+                    return Vector<T>(Rp + other.Rp);
+                }
+        };
+
 }
 
 #endif
