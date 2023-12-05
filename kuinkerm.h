@@ -111,6 +111,7 @@ namespace kuinkerm{
         {
             public:
                 friend class Dijkstra;
+                friend class gameTheory;
                 friend class TSP;
             
             protected:
@@ -129,9 +130,9 @@ namespace kuinkerm{
                 // 有向边的总数
                 int Tot;
 
-                /*  最大点数，最大边数，实际点数，实际边数（可不填）
+                /*  最大点数，最大边数，实际点数（可不填），实际边数（可不填）
                 */
-                Graph(int Maxn, int Maxe, int n, int m = 0): Maxn(Maxn), Maxe(Maxe<<1), n(n), m(m){
+                Graph(int Maxn, int Maxe, int n = 0, int m = 0): Maxn(Maxn), Maxe(Maxe<<1), n(n), m(m){
                     Tot = 0;
                     Next.resize(Maxe<<1);
                     Head.resize(Maxn);
@@ -153,6 +154,7 @@ namespace kuinkerm{
 
         /*  迪杰斯特拉单源最短路算法
             不支持负边
+            1-index
         */
         class Dijkstra
         {
@@ -173,11 +175,10 @@ namespace kuinkerm{
                 /*  图，源点（默认为1）
                     构造时直接开始跑最短路
                 */
-
                 Dijkstra(const Graph& Gp, int startPoint = 1): Gp(Gp), startPoint(startPoint){
                     Distance.resize(Gp.Maxn);
                     Visit.resize(Gp.Maxn);
-                    for(int i = 1; i <= Gp.n; i ++)
+                    for(int i = 1; i < Gp.Maxn; i ++)
                         Distance[i] = INFLL;
                     Distance[startPoint] = 0;
                     Pq.push(Pair {0, startPoint});
@@ -368,7 +369,7 @@ namespace kuinkerm{
                             throw std::runtime_error("LISLDS, input parameter ERROR");
                     }
 
-                    /*  返回最小边权加和
+                    /*  返回最长长度
                     */
                     int getLength(){
                         return rntLength;
@@ -531,6 +532,22 @@ namespace kuinkerm{
                     for (; v > 0; v = v / BASE)
                         z.push_back((int)(v % BASE));
                     return *this;
+                }
+
+                static ll converseToLL(bigInt v)
+                {
+                    if(v >= INFLL)
+                        throw std::runtime_error("bigInt, invalid conversion, number is too big");
+                    ll Rnt = 1;
+                    if (v.Sign == -1)
+                        Rnt *= -1;
+                    
+                    Rnt *= (v.z.empty() ? 0 : v.z.back());
+                    for (int i = (int)v.z.size() - 2; i >= 0; --i){
+                        Rnt *= 10;
+                        Rnt += v.z[i];
+                    }
+                    return Rnt;
                 }
 
                 bigInt& operator+=(const bigInt& Other)
@@ -1852,7 +1869,275 @@ namespace kuinkerm{
                 }
         };
 
-        
+        /* 博弈
+           输入一棵树，每次对手可以从自己所在的位置往子树移动一个位置。
+           假设发展树的叶子节点为必胜状态。
+           如果想把发展树的叶子节点都改成必败状态，则在每个节点后面再接一个节点即可。
+           1-index
+        */
+        class gameTheory{
+            private:
+                std::vector<bool> bothSmartDP, bothSillyDp, smartSillyDp, sillySmartDp;
+                // 游戏的发展树
+                const Graph& boardTree;
+                // 为true则先手必胜/后手必败，否则先手必败/后手必胜
+                bool firstMoveWin = false;
+
+                // 双方都是最优策略
+                bool bothSmartDfs(int x, int Fa){
+                    bool boundToWin = false, endOfBranch = true;
+                    for(int i = boardTree.Head[x]; i; i = boardTree.Next[i]){
+                        int y = boardTree.Ver[i];
+                        if(y == Fa)	
+                            continue;
+                        endOfBranch = false;
+                        boundToWin |= bothSmartDfs(y, x);
+                    }
+                    if(endOfBranch)
+                        return bothSmartDP[x] = true;
+                    return bothSmartDP[x] = !boundToWin;
+                }
+
+                // 双方都是最差策略
+                bool bothSillyDfs(int x, int Fa){
+                    bool boundToWin = true, endOfBranch = true;
+                    for(int i = boardTree.Head[x]; i; i = boardTree.Next[i]){
+                        int y = boardTree.Ver[i];
+                        if(y == Fa)	
+                            continue;
+                        endOfBranch = false;
+                        boundToWin &= bothSillyDfs(y, x);
+                    }
+                    if(endOfBranch)
+                        return bothSillyDp[x] = true;
+                    return bothSillyDp[x] = !boundToWin;
+                }
+
+                // 先手最优策略，后手最差策略
+                bool smartSillyDfs(int x, int Fa, bool isSmart){
+                    bool boundToWin = false, endOfBranch = true;
+                    for(int i = boardTree.Head[x]; i; i = boardTree.Next[i]){
+                        int y = boardTree.Ver[i];
+                        if(y == Fa)	
+                            continue;
+                        endOfBranch = false;
+                        if(isSmart == true)
+                            boundToWin |= smartSillyDfs(y, x, !isSmart);
+                        else
+                            boundToWin &= smartSillyDfs(y, x, !isSmart);
+                    }
+                    if(endOfBranch)
+                        return bothSmartDP[x] = true;
+                    return bothSmartDP[x] = !boundToWin;
+                }
+
+            public:
+                gameTheory(const Graph& boardTree, const std::string& firstMove, const std::string& secondMove): boardTree(boardTree){
+
+                    if(firstMove == "SMART" && secondMove == "SMART"){
+                        bothSmartDP.resize(boardTree.Maxn);
+                        bothSmartDfs(1, -1);
+                        // 子节点存在必胜 = 先手必胜
+                        firstMoveWin = !bothSmartDP[1];
+                    }
+                    else if(firstMove == "SILLY" && secondMove == "SILLY"){
+                        bothSillyDp.resize(boardTree.Maxn);
+                        bothSillyDfs(1, -1);
+                        // 子节点都为必胜 = 先手必胜
+                        firstMoveWin = !bothSillyDp[1];
+                    }
+                    else if(firstMove == "SMART" && secondMove == "SILLY"){
+                        smartSillyDp.resize(boardTree.Maxn);
+                        smartSillyDfs(1, -1, true);
+                        // 子节点存在必胜 = 先手必胜
+                        firstMoveWin = smartSillyDp[1];
+                    }
+                    else if(firstMove == "SILLY" && secondMove == "SMART"){
+                        sillySmartDp.resize(boardTree.Maxn);
+                        smartSillyDfs(1, -1, false);
+                        // 子节点都为必胜 = 先手必胜
+                        firstMoveWin = smartSillyDp[1];
+                    }
+                    else 
+                        throw std::runtime_error("gameTheory, input parameter ERROR");
+                }
+
+                bool getFirstMove(){
+                    return firstMoveWin;
+                } 
+        };
+
+        /* 数论基础算法
+        */
+        class numTheoryBasic{
+            public:
+                // 快速幂
+                template<typename T>
+                static T fastPow(T a, T n, T MOD = INFLL){
+                    T Res = 1;
+                    while(n!=0){
+                        if((n%2) == 1)
+                            Res = Res % MOD * a % MOD;
+                        a = a % MOD * a % MOD;
+                        n /= 2;
+                    }
+                    return Res; 
+                }
+
+                // 最大公因数
+                template<typename T>
+                static T Gcd(T a, T b){
+                    if (b==0) return a;
+                    return Gcd(b, a % b);
+                }
+
+                // 最小公倍数
+                template<typename T>
+                static T Lcm(T a, T b){
+                    return a / Gcd(a,b) * b;
+                }
+        };
+
+        /* 判定素数以及获得一个数的质因数
+            2的64次方以内基本没问题
+        */
+        class judgePrime{
+            private:
+                bool millerRabin(bigInt x, bigInt b){
+                    bigInt k = x - 1;
+                    while(k!=0) {
+                        bigInt t = numTheoryBasic::fastPow(b, k, x);
+                        if (t != 1 && t != x - 1) return false;
+                        if ((k % 2) == 1 || t == x - 1) return true;
+                        k /= 2;
+                    }
+                    return true;
+                }
+            public:
+                const int LISTLENGTH = 1e6;
+                std::vector<int> Vis;
+	            std::vector<int> Prime;
+                std::string isCertain;
+                judgePrime(const std::string& isCertain): isCertain(isCertain) {
+                    if(isCertain != "CERTAIN" && isCertain != "NOTCERTAIN")
+                        throw std::runtime_error("judgePrime, input parameter ERROR");
+                    
+                    Vis.resize(LISTLENGTH+10);
+                    for(int i = 2; i <= LISTLENGTH; i ++){
+                        if(!Vis[i]){
+                            Vis[i] = i;
+                            Prime.emplace_back(i);
+                        }
+                        int sz = Prime.size();
+                        for(int j = 0; j < sz; j ++){
+                            if(Prime[j] > Vis[i] || Prime[j] > LISTLENGTH/i)
+                                break;
+                            Vis[i*Prime[j]] = Prime[j];
+                        }
+                    }
+                }
+                bool isPrime(ll x) {
+                    if (x < 1e6) 
+                        return (bool)(0==Vis[x]);
+                    if(x < 2)
+                        return false;
+                    ll Lim = sqrt(x)+1;
+                    for(int i = 2; i <= Lim; i ++)
+                        if(!(x%i))
+                            return false;
+                    return true;
+                }
+                bool isPossiblyPrime(bigInt x){
+                    if(isCertain != "NOTCERTAIN")
+                        throw std::runtime_error("judgePrime, be sure you call the right function.");
+                    if (x < 1e6) 
+                        return (bool)(x==Vis[bigInt::converseToLL(x)]);
+                    return millerRabin(x, 2) && millerRabin(x, 325) && millerRabin(x, 9375)
+                    && millerRabin(x, 28178) && millerRabin(x, 450775) && millerRabin(x, 9780504) && millerRabin(x, 1795265022);
+                }
+        };
+
+        /* 判定素数以及获得一个数的质因数
+        */
+        class primeFactor{
+            private:
+                judgePrime jPrime;
+                std::string isCertain;
+                // 数字可以被分解为pi.first的pi.second次方的乘积
+                std::vector<std::pair<ll, ll>> Pi;
+
+                ll pollardRho(ll x){
+                    ll s = 0, t = 0, Val = 1, c = 1ll * rand() % (x - 1) + 1;
+                    int St = 0, Tar = 1;
+                    while (true){
+                        for (St = 1; St <= Tar; St ++){
+                            t = ((ll)t * t + c) % x;
+                            Val = (ll)Val * llabs(t - s) % x;
+                            if ((St % 127) == 0){
+                                ll d = numTheoryBasic::Gcd(Val, x);
+                                if (d > 1) return d;
+                            }
+                        }
+                        ll d = numTheoryBasic::Gcd(Val, x);
+                        if (d > 1) return d;
+                        Tar <<= 1;
+                        s = t;
+                        Val = 1;
+                    }
+                }
+
+                void getFactors(ll x){
+                    if (x < 2) return;
+                    if (jPrime.isPossiblyPrime(x)){
+                        Pi.emplace_back(std::make_pair(x, 0));
+                        return;
+                    }
+                    ll t = x;
+                    while(t >= x) 
+                        t = pollardRho(x);
+                    while((x % t) == 0) 
+                        x /= t;
+                    getFactors(x);getFactors(t);
+                }
+
+            public:
+                primeFactor(const std::string& isCertain, ll x): isCertain(isCertain), jPrime("NOTCERTAIN")  {
+                    if(isCertain != "CERTAIN" && isCertain != "NOTCERTAIN")
+                        throw std::runtime_error("primeFactor, input parameter ERROR");
+                
+                    if(isCertain == "CERTAIN"){
+                        ll Lim = sqrt(x)+1;
+                        for(int i = 2; i < Lim; i ++){
+                            if(!(x%i)){
+                                Pi.emplace_back(std::make_pair(i, 0));
+                                while(!(x%i))
+                                    x /= i, Pi[(int)(Pi.size()-1)].second ++;
+                            } 
+                        }
+                        if(x > 1)
+                            Pi.emplace_back(std::make_pair(x, 1)); 
+                    }
+                    else{
+                        getFactors(x);
+                        std::set<ll> tmpFacSet;
+                        for(auto Pa: Pi)
+                            tmpFacSet.insert(Pa.first);
+                        Pi.clear();
+                        for(auto Pa: tmpFacSet)
+                            Pi.emplace_back(std::make_pair(Pa, 0));
+                        for(auto& Pa: Pi){
+                            while(!(x%Pa.first))
+                                x /= Pa.first, Pa.second ++;
+                        }
+
+                    }
+                }
+
+                std::vector<std::pair<ll, ll>> getFactors(){
+                    return Pi;
+                }
+
+        };
 
 }
 
