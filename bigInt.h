@@ -210,20 +210,20 @@ namespace kuinkerm {
     return res;
   }
 
-  bigInt  sqrt(const bigInt& a1) {
+  bigInt Sqrt(const bigInt& a1) {
     bigInt a = a1;
     while (a.z.empty() || a.z.size() % 2 == 1) a.z.push_back(0);
 
     int n = a.z.size();
 
-    int firstDigit = (int)::sqrt((double)a.z[n - 1] *  bigInt::BASE + a.z[n - 2]);
+    int firstDigit = (int)sqrt((double)a.z[n - 1] *  bigInt::BASE + a.z[n - 2]);
     int Norm =  bigInt::BASE / (firstDigit + 1);
     a *= Norm;
     a *= Norm;
     while (a.z.empty() || a.z.size() % 2 == 1) a.z.push_back(0);
 
     bigInt r = (long long)a.z[n - 1] *  bigInt::BASE + a.z[n - 2];
-    firstDigit = (int)::sqrt((double)a.z[n - 1] *  bigInt::BASE + a.z[n - 2]);
+    firstDigit = (int)sqrt((double)a.z[n - 1] *  bigInt::BASE + a.z[n - 2]);
     int q = firstDigit;
     bigInt res;
 

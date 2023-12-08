@@ -72,7 +72,7 @@ class bigInt {
 
   bigInt operator*(const bigInt& v) const;
 
-  friend bigInt sqrt(const bigInt& a1);
+  friend bigInt Sqrt(const bigInt& a1);
 
   bigInt operator/(const bigInt& v) const;
 
@@ -223,6 +223,7 @@ class Graph {
   friend class gameTheory;
   friend class expProceed;
   friend class TSP;
+  friend class Tarjan;
 
  protected:
   // 最大的点数和边数
@@ -240,6 +241,7 @@ class Graph {
   // 有向边的总数
   int Tot;
 
+ public:
   /*  最大点数，最大边数，实际点数（可不填），实际边数（可不填）
    */
   Graph(int Maxn, int Maxe, int n = 0, int m = 0);
@@ -251,13 +253,9 @@ class Graph {
       g.Add(39, 42, 9);
       g.Add(42, 39, 9);
   */
-  void Add(int x, int y, int w = 0) ;
+  void Add(int x, int y, int w = 0);
 };
 
-/*  迪杰斯特拉单源最短路算法
-    不支持负边
-    1-index
-*/
 class Dijkstra {
  private:
   // <最短距离，顶点编号>
@@ -276,47 +274,21 @@ class Dijkstra {
   /*  图，源点（默认为1）
       构造时直接开始跑最短路
   */
-  Dijkstra(const Graph& Gp, int startPoint = 1)
-      : Gp(Gp), startPoint(startPoint) {
-    Distance.resize(Gp.Maxn);
-    Visit.resize(Gp.Maxn);
-    for (int i = 1; i < Gp.Maxn; i++) Distance[i] = INFLL;
-    Distance[startPoint] = 0;
-    Pq.push(Pair{0, startPoint});
-    while (!Pq.empty()) {
-      Pair Pa = Pq.top();
-      Pq.pop();
-      int curPoint = Pa.second;
-      if (Visit[curPoint]) continue;
-      Visit[curPoint] = true;
-      for (int i = Gp.Head[curPoint]; i; i = Gp.Next[i]) {
-        int nxtPoint = Gp.Ver[i];
-        int edgeValue = Gp.Value[i];
-        if (Distance[nxtPoint] > Distance[curPoint] + edgeValue) {
-          Distance[nxtPoint] = Distance[curPoint] + edgeValue;
-          Pq.push(Pair{Distance[nxtPoint], nxtPoint});
-          // 路径还原 pre[nxtPoint] = curPoint;
-        }
-      }
-    }
-  }
+  Dijkstra(const Graph& Gp, int startPoint = 1);
 
   /*  返回整个Distance数组
 
       const vector<ll>& disRnt = dijkstra.getDistance();
   */
-  const std::vector<ll>& getDistance() const { return Distance; }
+  const std::vector<ll>& getDistance() const;
 
   /*  返回源点到pointId的最短距离
 
       long long disRnt = dijkstra.getDistance(pointId);
   */
-  ll getDistance(int pointId) const { return Distance[pointId]; }
+  ll getDistance(int pointId) const;
 };
 
-/*  给出一个 n 个节点， m 条边的联通无向图，问从 1
- * 出发，游历所有点至少一次后返回，最少需经过的边权总和
- */
 class TSP {
  private:
   // 跑TSP算法的图
@@ -331,40 +303,12 @@ class TSP {
  public:
   /* 图构造时直接开始跑TSP
    */
-  TSP(const Graph& Gp) : Gp(Gp) {
-    Dp.resize(Gp.Maxn);
-    Distance.resize(Gp.Maxn);
-    for (int i = 0; i < Gp.Maxn; i++) {
-      Dp[i].resize(1 << Gp.Maxn);
-      for (int j = 0; j < (1 << Gp.Maxn); j++) Dp[i][j] = INFLL;
-      Distance[i].resize(Gp.Maxn);
-    }
-    for (int i = 1; i <= Gp.n; i++) {
-      Dijkstra Dij(Gp, i);
-      Distance[i] = Dij.getDistance();
-    }
-    Dp[0][1] = 0;
-    for (int S = 0; S < (1 << Gp.n); S++)
-      for (int St = 1; St <= Gp.n; St++)
-        if (S & (1 << (St - 1)))
-          for (int Ed = 1; Ed <= Gp.n; Ed++) {
-            if (St == Ed || !(S & (1 << (Ed - 1)))) continue;
-            Dp[Ed - 1][S] =
-                std::min(Dp[Ed - 1][S],
-                         Dp[St - 1][S ^ (1 << (Ed - 1))] + Distance[St][Ed]);
-          }
-    minEdgeValueSum = INFLL;
-    for (int i = 1; i <= Gp.n; i++)
-      minEdgeValueSum = std::min(minEdgeValueSum,
-                                 Dp[i - 1][(1 << Gp.n) - 1] + Distance[i][1]);
-  }
+  TSP(const Graph& Gp);
   /*  返回最小边权加和
    */
-  ll getMinEdgeValueSum() { return minEdgeValueSum; }
+  ll getMinEdgeValueSum();
 };
 
-/*  LIS/LDS
- */
 class LISLDS {
  private:
   // 是最长上升序列
@@ -379,93 +323,23 @@ class LISLDS {
   // 最长的长度
   int rntLength;
 
-  void strictLIS() {
-    if (a.empty()) return;
-    Dp[0] = a[0];
-    int dpLen = 0;
-    for (int i = 1; i < (int)a.size(); i++)
-      if (a[i] > Dp[dpLen])
-        Dp[++dpLen] = a[i];
-      else {
-        int k = std::lower_bound(Dp.begin(), Dp.begin() + dpLen + 1, a[i]) -
-                Dp.begin();
-        Dp[k] = a[i];
-        std::cout << k << " ";
-      }
-    rntLength = dpLen + 1;
-  }
+  void strictLIS();
 
-  void lenientLIS() {
-    if (a.empty()) return;
-    Dp[0] = a[0];
-    int dpLen = 0;
-    for (int i = 1; i < (int)a.size(); i++)
-      if (a[i] >= Dp[dpLen])
-        Dp[++dpLen] = a[i];
-      else {
-        int k = std::upper_bound(Dp.begin(), Dp.begin() + dpLen + 1, a[i]) -
-                Dp.begin();
-        Dp[k] = a[i];
-      }
-    rntLength = dpLen + 1;
-  }
+  void lenientLIS();
 
-  void strictLDS() {
-    if (a.empty()) return;
-    Dp[0] = a[0];
-    int dpLen = 0;
-    for (int i = 1; i < (int)a.size(); i++)
-      if (a[i] < Dp[dpLen])
-        Dp[++dpLen] = a[i];
-      else {
-        int k = std::lower_bound(Dp.begin(), Dp.begin() + dpLen + 1, a[i],
-                                 std::greater<ll>()) -
-                Dp.begin();
-        Dp[k] = a[i];
-      }
-    rntLength = dpLen + 1;
-  }
+  void strictLDS();
 
-  void lenientLDS() {
-    if (a.empty()) return;
-    Dp[0] = a[0];
-    int dpLen = 0;
-    for (int i = 1; i < (int)a.size(); i++)
-      if (a[i] <= Dp[dpLen])
-        Dp[++dpLen] = a[i];
-      else {
-        int k = std::upper_bound(Dp.begin(), Dp.begin() + dpLen + 1, a[i],
-                                 std::greater<ll>()) -
-                Dp.begin();
-        Dp[k] = a[i];
-      }
-    rntLength = dpLen + 1;
-  }
+  void lenientLDS();
 
  public:
   LISLDS(const std::vector<ll>& a, const std::string& isLIS,
-         const std::string& isStrict)
-      : a(a) {
-    Dp.resize(a.size());
-    if (isLIS == "LIS" && isStrict == "STRICT")
-      strictLIS(), this->isLIS = true, this->isStrict = true;
-    else if (isLIS == "LIS" && isStrict == "LENIENT")
-      lenientLIS(), this->isLIS = true, this->isStrict = false;
-    else if (isLIS == "LDS" && isStrict == "STRICT")
-      strictLDS(), this->isLIS = false, this->isStrict = true;
-    else if (isLIS == "LDS" && isStrict == "LENIENT")
-      lenientLDS(), this->isLIS = false, this->isStrict = false;
-    else
-      throw std::runtime_error("LISLDS, input parameter ERROR");
-  }
+         const std::string& isStrict);
 
   /*  返回最长长度
    */
-  int getLength() { return rntLength; }
+  int getLength();
 };
 
-/*  并查集
- */
 class disjointSet {
  private:
   // 最多有多少个集合
@@ -476,35 +350,19 @@ class disjointSet {
   std::vector<int> High;
 
  public:
-  disjointSet(int Maxn) : Maxn(Maxn) {
-    Parent.resize(Maxn + 1);
-    High.resize(Maxn + 1);
-
-    for (int i = 1; i < Maxn; i++) Parent[i] = i, High[i] = 0;
-  }
+  disjointSet(int Maxn);
 
   // 查询集合 x 的最终父亲
-  int find(int x) { return Parent[x] == x ? x : Parent[x] = find(Parent[x]); }
+  int Find(int x);
 
   // 将集合 x 和集合 y 所属的两个集合连接起来
-  void unite(int x, int y) {
-    x = find(x);
-    y = find(y);
-    if (x == y) return;
-    if (High[x] < High[y])
-      Parent[x] = y;
-    else {
-      Parent[y] = x;
-      if (High[x] == High[y]) High[x]++;
-    }
-  }
+  void Unite(int x, int y);
   // 检查集合 x 和集合 y是否属于同一集合
-  bool same(int x, int y) { return find(x) == find(y); }
+  bool Same(int x, int y);
 };
 
-/*  分块
- */
 class blockPartition {
+ private:
   // 数组最大长度，块的个数
   int Maxn, blockNum;
   // 输入数组
@@ -520,100 +378,42 @@ class blockPartition {
   // pos[j]表示 原数组下标 j 在哪一段
   std::vector<int> Pos;
 
-  blockPartition(const std::vector<ll>& a, int Maxn) : a(a), Maxn(Maxn) {
-    blockNum = sqrt(a.size());
-    // 块怎么分搞不懂看lyd p224
-    for (int i = 1; i <= blockNum; i++) {
-      L[i] = (i - 1) * blockNum + 1;
-      R[i] = i * blockNum;
-    }
-    // 尾巴还有一点，多分一个块
-    if (R[blockNum] < (int)a.size()) {
-      blockNum++;
-      L[blockNum] = R[blockNum - 1] + 1;
-      R[blockNum] = a.size();
-    }
-    // 预处理 pos和sum
-    for (int i = 1; i <= blockNum; i++)
-      for (int j = L[i]; j <= R[i]; j++) Pos[j] = i, Sum[i] += a[j];
-  }
+ public:
+  blockPartition(const std::vector<ll>& a, int Maxn);
 
   // 将区间[l, r]加上 Value
-  void change(int l, int r, ll Value) {
-    // 此次修改涉及[p,q]的分块
-    int p = Pos[l], q = Pos[r];
-
-    // 在同一分块内
-    if (p == q) {
-      // 局部朴素直接加到原数组
-      for (int i = l; i <= r; i++) a[i] += Value;
-      // 总和加增量*长度
-      Sum[p] += Value * (r - l + 1);
-    } else {
-      // 除一头一尾，其余中间每一块的增量标记改变
-      for (int i = p + 1; i <= q; i++) Add[i] += Value;
-      // 对头部的块朴素
-      for (int i = l; i <= R[p]; i++) a[i] += Value;
-      Sum[p] += Value * (R[p] - l + 1);
-      // 对尾部的块朴素
-      for (int i = L[q]; i <= r; i++) a[i] += Value;
-      Sum[q] += Value * (r - L[q] + 1);
-    }
-  }
+  void change(int l, int r, ll Value);
 
   // 返回区间[l, r]的和
-  ll ask(int l, int r) {
-    // 此次查询涉及[p,q]的分块
-    int p = Pos[l], q = Pos[r];
-    ll ans = 0;
-    // 在同一分块内
-    if (p == q) {
-      for (int i = l; i <= r; i++) ans += a[i];
-      ans += Add[p] * (r - l + 1);
-    } else {
-      // 除一头一尾，其余中间每一块一块一块加
-      for (int i = p + 1; i <= q; i++)
-        ans += Sum[i] + Add[i] * (R[i] - L[i] + 1);
-      // 对头部的块朴素
-      for (int i = l; i <= R[p]; i++) ans += a[i];
-      ans += Add[p] * (R[p] - l + 1);
-
-      // 对尾部的块朴素
-      for (int i = L[q]; i <= r; i++) ans += a[i];
-      ans += Add[q] * (r - L[q] + 1);
-    }
-    return ans;
-  }
+  ll ask(int l, int r);
 };
 
-/*  哈希
- */
 template <typename T1, typename T2>
-class HashTable {
+class hashTable {
  private:
   // T1为键值，T2为数据
   __gnu_pbds::gp_hash_table<T1, T2> hTable;
+  using htIter =
+      typename __gnu_pbds::gp_hash_table<T1, T2>::point_const_iterator;
 
  public:
   // 插入一条哈希数据
-  void Insert(T1 x, T2 y) const { hTable.insert(std::make_pair(x, y)); }
+  void Insert(T1 x, T2 y) const;
 
   // 用下标访问哈希数据，如 table[x] 就是键值的对应数据
-  T2& operator[](T1 x) { return hTable[x]; }
-  const T2& operator[](T1 x) const { return hTable[x]; }
+  T2& operator[](T1 x);
+  const T2& operator[](T1 x) const;
 
   // 返回一个指针，first为键值，second为数据
-  auto Find(T1 x) const { return hTable.find(x); }
-  auto notFound() const { return hTable.end(); }
+  htIter Find(T1 x) const;
+  htIter notFound() const;
   // 删除键值x的哈希数据
-  void Erase(T1 x) const { hTable.erase(x); }
-  void Clear() const { hTable.clear(); }
-  int Size() const { return hTable.size(); }
-  bool Empty() const { return hTable.empty(); }
+  void Erase(T1 x) const;
+  void Clear() const;
+  int Size() const;
+  bool Empty() const;
 };
 
-/*  优先队列
- */
 template <typename T, typename F = void>
 class priorityQueue {
  private:
@@ -624,7 +424,6 @@ class priorityQueue {
       __gnu_pbds::priority_queue<T, Comparator, heapTag>,
       __gnu_pbds::priority_queue<T, F, heapTag>>::type;
   using pqIter = typename pqType::point_iterator;
-
   // 传入的是否是基本类型，是否重载了调用运算符（F是否为空）
   bool isFundamentalType, wantUseTemplate;
 
@@ -634,31 +433,29 @@ class priorityQueue {
   std::unique_ptr<pqType> Pq;
 
  public:
-  priorityQueue() ;
+  priorityQueue();
 
-  priorityQueue(Comparator f) ;
+  priorityQueue(Comparator f);
 
-  void Push(T x) ;
+  void Push(T x);
 
-  void Pop() ;
+  void Pop();
 
-  T Top() ;
+  T Top();
 
-  int Size() ;
+  int Size();
 
-  bool Empty() ;
+  bool Empty();
 
-  void Claer() ;
+  void Claer();
 
   // 传入一个指针，将Iter指向的值改为x后，再重新维护堆
-  void Modify(pqIter Iter, const T x) ;
+  void Modify(pqIter Iter, const T x);
 
   // 将otherPq并入调用该方法的堆，并清空otherPq
-  void Join(priorityQueue& otherPq) ;
+  void Join(priorityQueue& otherPq);
 };
 
-/*  旋转树
- */
 template <typename T, typename F = void>
 class multiSet {
  private:
@@ -686,81 +483,39 @@ class multiSet {
   std::unique_ptr<mSType> Ms;
 
  public:
-  multiSet() {
-    isFundamentalType = std::is_fundamental<T>::value;
-    wantUseTemplate = !std::is_void<F>::value;
-    if (false == isFundamentalType && false == wantUseTemplate) {
-      throw std::runtime_error(
-          "multiSet, input type is not the fundamental type and the "
-          "comparision function or struct is not provided.");
-      return;
-    } else if (true == wantUseTemplate)
-      Ms = std::make_unique<mSType>();
-    else
-      Ms = std::make_unique<mSType>();
-  }
+  multiSet();
 
-  multiSet(std::function<bool(const T&, const T&)> f) : userComparator(f) {
-    isFundamentalType = std::is_fundamental<T>::value;
-    wantUseTemplate = !std::is_void<F>::value;
-    if (false == isFundamentalType && true == wantUseTemplate) {
-      throw std::runtime_error(
-          "multiSet, both comparision function and struct are existed, delete "
-          "one of them");
-      return;
-    }
-    Ms = std::make_unique<__gnu_pbds::tree<
-        PT, __gnu_pbds::null_type, std::function<bool(const PT&, const PT&)>,
-        mSTag, __gnu_pbds::tree_order_statistics_node_update>>(
-        [f](const PT& x, const PT& y) -> bool {
-          if (f(x.first, y.first) ^ f(y.first, x.first))
-            return f(x.first, y.first);
-          else
-            return (bool)(x.second < y.second);
-        });
-  }
+  multiSet(std::function<bool(const T&, const T&)> f);
 
-  int Size() { return Ms->size(); }
+  int Size();
 
-  bool Empty() { return Ms->empty(); }
+  bool Empty();
 
-  void Clear() { Ms->clear(); }
+  void Clear();
 
-  void Insert(T x) { Ms->insert({x, ++Dfn}); }
+  void Insert(T x);
 
-  void Erase(T x) { Ms->erase(Ms->lower_bound({x, 0})); }
+  void Erase(T x);
 
-  int isRank(T x) { return Ms->order_of_key({x, 0}) + 1; }
+  int isRank(T x);
 
-  T rankIs(int a) { return Ms->find_by_order(a - 1)->first; }
+  T rankIs(int a);
 
-  T Prev(T x) { return Ms->prev(Ms->lower_bound({x, 0}))->first; }
+  T Prev(T x);
 
   // 返回第一个大于等于x的元素
-  T lowerBound(T x) { return Ms->lower_bound({x, 0})->first; }
+  T lowerBound(T x);
 
   // 返回第一个大于x的元素
-  T upperBound(T x) { return Ms->upper_bound({x, INF})->first; }
+  T upperBound(T x);
 
   // 确保被合并set的所有元素大于合并set的所有元素，合并后清空
-  void Join(multiSet& otherMs) {
-    if (userComparator(otherMs.rankIs(1), this->rankIs(this->Size())))
-      throw std::runtime_error(
-          "multiSet, Join failed. The necessary condition for merging two sets "
-          "is that all elements in the merging set must be smaller than all "
-          "elements in the target set.");
-    Ms->join(*otherMs.Ms);
-  }
+  void Join(multiSet& otherMs);
 
   // 分裂，小于x的元素留住，大于等于x的元素分裂出去
-  void Split(T x, multiSet& otherMs) {
-    otherMs.Clear();
-    Ms->split({x, 0}, *otherMs.Ms);
-  }
+  void Split(T x, multiSet& otherMs);
 };
 
-/*  可变长数组
- */
 template <typename T>
 class Vector {
  private:
@@ -768,40 +523,35 @@ class Vector {
   __gnu_cxx::rope<T> Rp;
 
  public:
-  Vector() {}
-  Vector(__gnu_cxx::rope<T> Rp) : Rp(Rp) {}
+  Vector();
+  Vector(__gnu_cxx::rope<T> Rp);
 
-  const T operator[](std::size_t index) const { return Rp[index]; }
+  const T operator[](std::size_t index) const;
 
-  void pushBack(T x) { Rp.push_back(x); }
-  void popBack(T x) { Rp.pop_back(); }
+  void pushBack(T x);
+  void popBack(T x);
 
   // 从 Pos 位置开始插入 x
-  void Insert(int Pos, Vector<T> x) { Rp.insert(Pos, x); }
+  void Insert(int Pos, Vector<T> x);
 
   // 从 Pos 位置开始删掉长度为 Len 的元素
-  void Erase(int Pos, int Len) { Rp.erase(Pos, Len); }
+  void Erase(int Pos, int Len);
 
   // 从 Pos 位置开始提取长度为 Len 的子串，返回一个 Vector
-  Vector<T> Substr(int Pos, int Len) { return Vector<T>(Rp.substr(Pos, Len)); }
+  Vector<T> Substr(int Pos, int Len);
 
   // 替换 Pos 处的元素为 x
-  void Replace(int Pos, T x) { Rp.replace(Pos, x); }
+  void Replace(int Pos, T x);
 
   // 从 Pos 位置开始替换为 x
-  void Replace(int L, Vector<T> x) { Rp.replace(L, x.Size(), x); }
-  void Clear() { Rp.clear(); }
-  int Size() { return Rp.size(); }
-  bool Empty() { return Rp.empty(); }
+  void Replace(int L, Vector<T> x);
+  void Clear();
+  int Size();
+  bool Empty();
 
-  Vector<T> operator+(const Vector<T>& other) const {
-    return Vector<T>(Rp + other.Rp);
-  }
+  Vector<T> operator+(const Vector<T>& other) const;
 };
 
-/*  树状数组
-    注意，传入的vector是0-index，但是程序内为了方便处理使用的是1-index
-*/
 class bitTree {
  private:
   // 矩阵的长和宽
@@ -812,58 +562,17 @@ class bitTree {
   std::vector<std::vector<ll>> c2;
 
  public:
-  bitTree(const std::vector<ll>& a) : a(a) {
-    n = a.size();
-    c.resize(n << 2);
-    for (int i = 1; i <= n; i++) Add(i, a[i - 1]);
-  }
-  bitTree(const std::vector<std::vector<ll>> a2) : a2(a2) {
-    n = a2.size();
-    if (!n) return;
-    m = a2[0].size();
-    c2.resize(n << 2);
+  bitTree(const std::vector<ll>& a);
+  bitTree(const std::vector<std::vector<ll>> a2);
 
-    for (int i = 0; i <= (int)(n << 1); i++) {
-      c2[i].resize(m << 2);
-      if (i < n && (int)a2[i].size() != m)
-        throw std::runtime_error("bitTree, you need to offer a matrix");
-    }
-
-    for (int i = 1; i <= n; i++)
-      for (int j = 1; j <= m; j++) Add(i, j, a2[i - 1][j - 1]);
-  }
-
-  void Add(int x, ll d) {
-    x++;
-    for (; x <= (int)(n << 1); x += lowbit(x)) c[x] += d;
-  }
-  void Add(int x, int y, ll d) {
-    x++, y++;
-    for (int i = x; i <= (int)(n << 1); i += lowbit(i))
-      for (int j = y; j <= (int)(m << 1); j += lowbit(j)) c2[i][j] += d;
-  }
-  ll Ask(int x) {
-    x++;
-    ll Ans = 0;
-    for (; x; x -= lowbit(x)) Ans += c[x];
-    return Ans;
-  }
-  ll Ask(int x, int y) {
-    x++, y++;
-    ll ans = 0;
-    for (int i = x; i; i -= lowbit(i))
-      for (int j = y; j; j -= lowbit(j)) ans += c2[i][j];
-    return ans;
-  }
-  ll getSum(int l, int r) { return Ask(r) - Ask(l - 1); }
-  ll getSum(int x1, int y1, int x2, int y2) {
-    return Ask(x2, y2) - Ask(x1 - 1, y2) - Ask(x2, y1 - 1) +
-           Ask(x1 - 1, y1 - 1);
-  }
+  void Add(int x, ll d);
+  void Add(int x, int y, ll d);
+  ll Ask(int x);
+  ll Ask(int x, int y);
+  ll getSum(int l, int r);
+  ll getSum(int x1, int y1, int x2, int y2);
 };
 
-/* 线段树
- */
 class segTree {
  private:
   std::vector<ll> a;
@@ -883,130 +592,29 @@ class segTree {
   inline int LChild(int p) { return p * 2; }
   inline int RChild(int p) { return p * 2 + 1; }
 
-  void privateBuild(int p, int l, int r) {
-    ADD(p) = 0;
-    L(p) = l, R(p) = r;
+  void privateBuild(int p, int l, int r);
 
-    if (l == r) {
-      SUM(p) = MAX(p) = MIN(p) = a[l];
-      return;
-    }
-    int mid = (l + r) / 2;
+  void privateSpread(int p);
 
-    privateBuild(LChild(p), l, mid);
-    privateBuild(RChild(p), mid + 1, r);
+  void privateAdd(int p, int l, int r, ll d);
 
-    SUM(p) = SUM(LChild(p)) + SUM(RChild(p));
-    MAX(p) = std::max(MAX(LChild(p)), MAX(RChild(p)));
-    MIN(p) = std::min(MIN(LChild(p)), MIN(RChild(p)));
-  }
-
-  void privateSpread(int p) {
-    if (ADD(p)) {
-      SUM(LChild(p)) += ADD(p) * (R(LChild(p)) - L(LChild(p)) + 1);
-      SUM(RChild(p)) += ADD(p) * (R(RChild(p)) - L(RChild(p)) + 1);
-
-      MAX(LChild(p)) += ADD(p);
-      MAX(RChild(p)) += ADD(p);
-      MIN(LChild(p)) += ADD(p);
-      MIN(RChild(p)) += ADD(p);
-
-      ADD(LChild(p)) += ADD(p);
-      ADD(RChild(p)) += ADD(p);
-      ADD(p) = 0;
-    }
-  }
-
-  void privateAdd(int p, int l, int r, ll d) {
-    if (l <= L(p) && r >= R(p)) {
-      SUM(p) += d * (R(p) - L(p) + 1);
-      MAX(p) += d;
-      MIN(p) += d;
-      ADD(p) += d;
-      return;
-    }
-    privateSpread(p);
-    int mid = (L(p) + R(p)) / 2;
-
-    if (l <= mid) privateAdd(LChild(p), l, r, d);
-
-    if (r > mid) privateAdd(RChild(p), l, r, d);
-
-    SUM(p) = SUM(LChild(p)) + SUM(RChild(p));
-    MAX(p) = std::max(MAX(LChild(p)), MAX(RChild(p)));
-    MIN(p) = std::min(MIN(LChild(p)), MIN(RChild(p)));
-  }
-
-  ll privateAskSum(int p, int l, int r) {
-    if (l <= L(p) && r >= R(p)) return SUM(p);
-    privateSpread(p);
-    int mid = (L(p) + R(p)) / 2;
-    ll val = 0;
-    if (l <= mid) val += privateAskSum(LChild(p), l, r);
-    if (r > mid) val += privateAskSum(RChild(p), l, r);
-    return val;
-  }
-  ll privateAskMax(int p, int l, int r) {
-    if (l <= L(p) && r >= R(p)) return MAX(p);
-    privateSpread(p);
-    int mid = (L(p) + R(p)) / 2;
-    ll val = -INFLL;
-
-    if (l <= mid) val = std::max(val, privateAskMin(LChild(p), l, r));
-    if (r > mid) val = std::max(val, privateAskMin(RChild(p), l, r));
-    return val;
-  }
-  ll privateAskMin(int p, int l, int r) {
-    if (l <= L(p) && r >= R(p)) return MIN(p);
-    privateSpread(p);
-    int mid = (L(p) + R(p)) / 2;
-    ll val = INFLL;
-
-    if (l <= mid) val = std::min(val, privateAskMin(LChild(p), l, r));
-    if (r > mid) val = std::min(val, privateAskMin(RChild(p), l, r));
-    return val;
-  }
-  ll privateAskFirstLess(int p, int l, int r, ll x) {
-    if (L(p) == R(p)) {
-      if (MIN(p) <= x)
-        return L(p);
-      else
-        return -1;
-    }
-    privateSpread(p);
-
-    if (l <= L(p) && r >= R(p) && MIN(p) > x) return -1;
-
-    int mid = (L(p) + R(p)) / 2;
-    int jd = -1;
-    if (l <= mid) jd = privateAskFirstLess(LChild(p), l, r, x);
-    if (jd != -1) return jd;
-    if (r > mid) jd = privateAskFirstLess(RChild(p), l, r, x);
-    return jd;
-  }
+  ll privateAskSum(int p, int l, int r);
+  ll privateAskMax(int p, int l, int r);
+  ll privateAskMin(int p, int l, int r);
+  ll privateAskFirstLess(int p, int l, int r, ll x);
 
  public:
-  segTree(const std::vector<ll>& inputA) {
-    Tree.resize((inputA.size() << 2) + 1);
-    a.resize(inputA.size() + 1);
-    for (int i = 1; i <= (int)inputA.size(); i++) a[i] = inputA[i - 1];
-    privateBuild(1, 1, inputA.size());
-  }
+  segTree(const std::vector<ll>& inputA);
 
-  void Add(int l, int r, ll d) { privateAdd(1, l + 1, r + 1, d); }
-  ll askSum(int l, int r) { return privateAskSum(1, l + 1, r + 1); }
-  ll askMax(int p, int l, int r) { return privateAskMax(1, l + 1, r + 1); }
-  ll askMin(int p, int l, int r) { return privateAskMin(1, l + 1, r + 1); }
+  void Add(int l, int r, ll d);
+  ll askSum(int l, int r);
+  ll askMax(int p, int l, int r);
+  ll askMin(int p, int l, int r);
   // 返回第一个小于等于x的下标
   // 返回-2就是没找到
-  ll askFirstLess(int l, int r, ll x) {
-    return privateAskFirstLess(1, l + 1, r + 1, x) - 1;
-  }
+  ll askFirstLess(int l, int r, ll x);
 };
 
-/* Link-Cut Tree
-   进化版并查集
-*/
 class LCT {
  private:
   int Maxn;
@@ -1020,150 +628,46 @@ class LCT {
   };
   std::vector<struct lctNode> Nodes;
   // 获取节点 x 在其父节点中的左右关系
-  inline int Get(int x) { return Nodes[Nodes[x].Fa].Ch[1] == x; }
+  inline int Get(int x);
   // 判断节点 x 是否是所在树的根
-  inline bool isRoot(int x) {
-    return Nodes[Nodes[x].Fa].Ch[0] != x && Nodes[Nodes[x].Fa].Ch[1] != x;
-  }
+  inline bool isRoot(int x);
   // 更新节点 x 的信息，根据左右子树的信息更新节点大小等
-  void pushUp(int x) {
-    Nodes[x].Sz =
-        Nodes[Nodes[x].Ch[0]].Sz + Nodes[Nodes[x].Ch[1]].Sz + Nodes[x].Sz2 + 1;
-  }
+  void pushUp(int x);
   // 反转节点 p 的左右子树
-  void pushRotate(int x) {
-    if (!x) return;
-    std::swap(Nodes[x].Ch[0], Nodes[x].Ch[1]);
-    Nodes[x].rotateTag ^= 1;
-  }
+  void pushRotate(int x);
   // 将节点 x 的标记向下传递
-  void pushDown(int x) {
-    if (Nodes[x].rotateTag) {
-      pushRotate(Nodes[x].Ch[0]);
-      pushRotate(Nodes[x].Ch[1]);
-      Nodes[x].rotateTag = false;
-    }
-  }
+  void pushDown(int x);
   // 更新节点 x 的信息，递归更新其父节点
-  void Update(int x) {
-    if (!isRoot(x)) Update(Nodes[x].Fa);
-    pushDown(x);
-  }
+  void Update(int x);
   // 旋转节点 x
-  void Rotate(int x) {
-    int y = Nodes[x].Fa;
-    int z = Nodes[y].Fa;
-    int k = Get(x);
-    if (!isRoot(y)) Nodes[z].Ch[Get(y)] = x;
-    Nodes[x].Fa = z;
-    Nodes[Nodes[x].Ch[!k]].Fa = y;
-    Nodes[y].Ch[k] = Nodes[x].Ch[!k];
-    Nodes[x].Ch[!k] = y;
-    Nodes[y].Fa = x;
-    pushUp(y);
-    pushUp(x);
-  }
+  void Rotate(int x);
   // 伸展节点x
-  void Splay(int x) {
-    Update(x);
-    for (int p = Nodes[x].Fa; !isRoot(x); p = Nodes[x].Fa) {
-      if (!isRoot(p)) Rotate(Get(p) == Get(x) ? p : x);
-      Rotate(x);
-    }
-  }
+  void Splay(int x);
   // 将节点 x 到其树根的路径转为 Splay Tree，并返回树根
-  int Access(int x) {
-    int p = 0;
-    while (x) {
-      Splay(x);
-      Nodes[x].Sz2 += Nodes[Nodes[x].Ch[1]].Sz - Nodes[p].Sz;
-      Nodes[x].Ch[1] = p;
-      pushUp(x);
-      p = x;
-      x = Nodes[x].Fa;
-    }
-    return p;
-  }
+  int Access(int x);
   // 将节点 x 变为所在树的根
-  int makeRoot(int x) {
-    x = Access(x);
-    std::swap(Nodes[x].Ch[0], Nodes[x].Ch[1]);
-    Nodes[x].rotateTag ^= 1;
-    return x;
-  }
+  int makeRoot(int x);
 
  public:
-  LCT(int Maxn) : Maxn(Maxn) {
-    Nodes.resize(Maxn);
-    Nodes[0].Fa = 0;
-    Nodes[0].Ch[0] = Nodes[0].Ch[1] = 0;
-    Nodes[0].rotateTag = false;
-    n = 1;
-    Nodes[0].Sz = 0;
-    Nodes[0].Sz2 = 0;
-  }
+  LCT(int Maxn);
 
-  int getSize(int x) { return Nodes[Find(x)].Sz; }
+  int getSize(int x);
 
   // 判断是否存在边 x-y
-  bool haveEdge(int x, int y) {
-    if (Find(x) == Find(y)) {
-      makeRoot(x);
-      Access(y);
-      Splay(x);
-      if (Nodes[x].Ch[1] == y && Nodes[y].Ch[0] == 0) return true;
-    }
-    return false;
-  }
+  bool haveEdge(int x, int y);
 
   // 在两个不在同一树中的节点 x 和 y 之间添加边
-  void Link(int x, int y) {
-    if (haveEdge(x, y)) return;
-    x = makeRoot(x);
-    makeRoot(y);
-    Nodes[x].Fa = y;
-    Nodes[y].Sz2 += Nodes[x].Sz;
-    while (y) {
-      pushUp(y);
-      y = Nodes[y].Fa;
-    }
-  }
+  void Link(int x, int y);
 
   // 删除边 x-y
-  void Cut(int x, int y) {
-    // int res1, res2;
-    makeRoot(x);
-    Access(y);
-    Splay(x);
-    Nodes[y].Fa = 0;
-    Nodes[x].Ch[1] = 0;
-    pushUp(x);
-    // res1 = Nodes[x].Sz;
-    // res2 = Nodes[y].Sz;
-  }
+  void Cut(int x, int y);
 
   // 返回节点 x 所在树的根
-  int Find(int x) {
-    x = Access(x);
-    while (Nodes[x].Ch[0]) x = Nodes[x].Ch[0];
-    Splay(x);
-    return x;
-  }
+  int Find(int x);
 
-  // void clear(){
-  //     for (int i = 1; i < n; i++)
-  //     {
-  //         Nodes[i].rotateTag = false;
-  //         Nodes[i].Fa = 0;
-  //         Nodes[i].Ch[0] = Nodes[i].Ch[1] = 0;
-  //     }
-  //     n = 1;
-  // }
+  // void clear();
 };
 
-/* ST表
-   注意，传入的vector是0-index，但是程序内为了方便处理使用的是1-index
-*/
 class STList {
  private:
   int n;
@@ -1171,73 +675,26 @@ class STList {
   std::vector<std::vector<ll>> Min;
 
  public:
-  STList(const std::vector<ll>& a) {
-    n = a.size();
-    Max.resize(n + 1), Min.resize(n + 1);
-    Max[0].resize(log2(n) + 2), Min[0].resize(log2(n) + 2);
-    for (int i = 1; i <= n; i++) {
-      Max[i].resize(log2(n) + 2), Min[i].resize(log2(n) + 2);
-      Max[i][0] = Min[i][0] = a[i - 1];
-    }
-    for (int j = 1; j < log2(n) + 2; j++)
-      for (int i = 1; i + (1 << j) - 1 <= n; i++) {
-        Max[i][j] = std::max(Max[i][j - 1], Max[i + (1 << (j - 1))][j - 1]);
-        Min[i][j] = std::min(Min[i][j - 1], Min[i + (1 << (j - 1))][j - 1]);
-      }
-  }
-  ll askMax(int l, int r) {
-    l++, r++;
-    int k = log2(r - l + 1);
-    return std::max(Max[l][k], Max[r - (1 << k) + 1][k]);
-  }
-  ll askMin(int l, int r) {
-    l++, r++;
-    int k = log2(r - l + 1);
-    return std::min(Min[l][k], Min[r - (1 << k) + 1][k]);
-  }
+  STList(const std::vector<ll>& a);
+  ll askMax(int l, int r);
+  ll askMin(int l, int r);
 };
 
-/* 字符串处理
- */
 class stringDel {
-  static std::vector<std::string> splitByDel(std::string s, char Del) {
-    std::stringstream Ss(s);
-    std::string strEle;
-    std::vector<std::string> Rnt;
-    while (getline(Ss, strEle, Del)) Rnt.emplace_back(strEle);
-    return Rnt;
-  }
-
  public:
+  static std::vector<std::string> splitByDel(std::string s, char Del);
   // 1-index
   class stringHash {
    private:
-    HashTable<std::string, int> HT;
+    hashTable<std::string, int> HT;
     std::vector<std::string> V;
 
    public:
-    std::string int2Str(int x) {
-      if (x <= (int)V.size())
-        return V[x - 1];
-      else {
-        throw std::runtime_error(
-            "stringDel::stringHash, int2Str out_of_range, if you think that's "
-            "no problem, then just delete this exception.");
-        return "";
-      }
-    }
-    int str2Int(const std::string& s) {
-      if (HT.Find(s) == HT.notFound()) {
-        V.emplace_back(s);
-        return (HT[s] = (int)V.size());
-      } else
-        return HT[s];
-    }
+    std::string int2Str(int x);
+    int str2Int(const std::string& s);
   };
 };
 
-/* 字典树
- */
 class Trie {
  private:
   // 最长字符串的长度, 字符的总数
@@ -1251,73 +708,18 @@ class Trie {
   std::vector<std::vector<int>> Try;
 
  public:
-  Trie(int maxStrLen, int maxCharNum)
-      : maxStrLen(maxStrLen), maxCharNum(maxCharNum) {
-    Sum.resize((maxStrLen + 1) * (maxCharNum + 1));
-    preSum.resize((maxStrLen + 1) * (maxCharNum + 1));
-    Try.resize(maxStrLen + 1);
-    for (int i = 0; i <= maxStrLen; i++) Try[i].resize(maxCharNum + 1);
-  }
-  void Insert(const std::string& s) {
-    int rt = 0;
-    for (int i = 0; i < (int)s.size(); i++) {
-      int id = strHash.str2Int(std::string(1, s[i]));
-      if (!Try[rt][id]) Try[rt][id] = ++n;
-      rt = Try[rt][id];
-      preSum[rt]++;
-      if (i == (int)(s.size() - 1)) Sum[rt]++;
-    }
-  }
+  Trie(int maxStrLen, int maxCharNum);
+  void Insert(const std::string& s);
 
   // 返回true为删除成功，否则为删除失败
-  bool Delete(const std::string& s) {
-    int rt = 0;
-    for (int i = 0; i < (int)s.size(); i++) {
-      int id = strHash.str2Int(std::string(1, s[i]));
-      rt = Try[rt][id];
-      if (i == (int)(s.size() - 1) && !Sum[rt]) return false;
-      if (i == (int)(s.size() - 1)) Sum[rt]--;
-    }
-    rt = 0;
-    for (int i = 0; i < (int)s.size(); i++) {
-      int id = strHash.str2Int(std::string(1, s[i]));
-      rt = Try[rt][id];
-      assert(preSum[rt]);
-      preSum[rt]--;
-    }
-    return true;
-  }
+  bool Delete(const std::string& s);
   // 字符串的存在次数
-  int existTimes(const std::string& s) {
-    int rt = 0;
-    for (int i = 0; i < (int)s.size(); i++) {
-      int id = strHash.str2Int(std::string(1, s[i]));
-      if (!Try[rt][id]) return 0;
-      rt = Try[rt][id];
-      if (i == (int)(s.size() - 1)) return Sum[rt];
-    }
-    return 0;
-  }
+  int existTimes(const std::string& s);
 
   // 计算拥有某前缀的字符串的数量
-  int preExistTimes(const std::string& s) {
-    int rt = 0;
-    for (int i = 0; i < (int)s.size(); i++) {
-      int id = strHash.str2Int(std::string(1, s[i]));
-      if (!Try[rt][id]) return 0;
-      rt = Try[rt][id];
-      if (i == (int)(s.size() - 1)) return preSum[rt];
-    }
-    return 0;
-  }
+  int preExistTimes(const std::string& s);
 };
 
-/* 博弈
-   输入一棵树，每次对手可以从自己所在的位置往子树移动一个位置。
-   假设发展树的叶子节点为必胜状态。
-   如果想把发展树的叶子节点都改成必败状态，则在每个节点后面再接一个节点即可。
-   1-index
-*/
 class gameTheory {
  private:
   std::vector<bool> bothSmartDP, bothSillyDp, smartSillyDp, sillySmartDp;
@@ -1327,137 +729,35 @@ class gameTheory {
   bool firstMoveWin = false;
 
   // 双方都是最优策略
-  bool bothSmartDfs(int x, int Fa) {
-    bool boundToWin = false, endOfBranch = true;
-    for (int i = boardTree.Head[x]; i; i = boardTree.Next[i]) {
-      int y = boardTree.Ver[i];
-      if (y == Fa) continue;
-      endOfBranch = false;
-      boundToWin |= bothSmartDfs(y, x);
-    }
-    if (endOfBranch) return bothSmartDP[x] = true;
-    return bothSmartDP[x] = !boundToWin;
-  }
+  bool bothSmartDfs(int x, int Fa);
 
   // 双方都是最差策略
-  bool bothSillyDfs(int x, int Fa) {
-    bool boundToWin = true, endOfBranch = true;
-    for (int i = boardTree.Head[x]; i; i = boardTree.Next[i]) {
-      int y = boardTree.Ver[i];
-      if (y == Fa) continue;
-      endOfBranch = false;
-      boundToWin &= bothSillyDfs(y, x);
-    }
-    if (endOfBranch) return bothSillyDp[x] = true;
-    return bothSillyDp[x] = !boundToWin;
-  }
+  bool bothSillyDfs(int x, int Fa);
 
   // 先手最优策略，后手最差策略
-  bool smartSillyDfs(int x, int Fa, bool isSmart) {
-    bool boundToWin = false, endOfBranch = true;
-    for (int i = boardTree.Head[x]; i; i = boardTree.Next[i]) {
-      int y = boardTree.Ver[i];
-      if (y == Fa) continue;
-      endOfBranch = false;
-      if (isSmart == true)
-        boundToWin |= smartSillyDfs(y, x, !isSmart);
-      else
-        boundToWin &= smartSillyDfs(y, x, !isSmart);
-    }
-    if (endOfBranch) return bothSmartDP[x] = true;
-    return bothSmartDP[x] = !boundToWin;
-  }
+  bool smartSillyDfs(int x, int Fa, bool isSmart);
 
  public:
   gameTheory(const Graph& boardTree, const std::string& firstMove,
-             const std::string& secondMove)
-      : boardTree(boardTree) {
-    if (firstMove == "SMART" && secondMove == "SMART") {
-      bothSmartDP.resize(boardTree.Maxn);
-      bothSmartDfs(1, -1);
-      // 子节点存在必胜 = 先手必胜
-      firstMoveWin = !bothSmartDP[1];
-    } else if (firstMove == "SILLY" && secondMove == "SILLY") {
-      bothSillyDp.resize(boardTree.Maxn);
-      bothSillyDfs(1, -1);
-      // 子节点都为必胜 = 先手必胜
-      firstMoveWin = !bothSillyDp[1];
-    } else if (firstMove == "SMART" && secondMove == "SILLY") {
-      smartSillyDp.resize(boardTree.Maxn);
-      smartSillyDfs(1, -1, true);
-      // 子节点存在必胜 = 先手必胜
-      firstMoveWin = smartSillyDp[1];
-    } else if (firstMove == "SILLY" && secondMove == "SMART") {
-      sillySmartDp.resize(boardTree.Maxn);
-      smartSillyDfs(1, -1, false);
-      // 子节点都为必胜 = 先手必胜
-      firstMoveWin = smartSillyDp[1];
-    } else
-      throw std::runtime_error("gameTheory, input parameter ERROR");
-  }
+             const std::string& secondMove);
 
-  bool getFirstMove() { return firstMoveWin; }
+  bool getFirstMove();
 };
 
-/* 判定素数
-    2的64次方以内基本没问题
-*/
 class judgePrime {
  private:
-  bool millerRabin(bigInt x, bigInt b) {
-    bigInt k = x - 1;
-    while (k != 0) {
-      bigInt t = numTheoryBasic::fastPow(b, k, x);
-      if (t != 1 && t != x - 1) return false;
-      if ((k % 2) == 1 || t == x - 1) return true;
-      k /= 2;
-    }
-    return true;
-  }
-
- public:
   const int LISTLENGTH = 1e6;
   std::vector<int> Vis;
   std::vector<int> Prime;
   std::string isCertain;
-  judgePrime(const std::string& isCertain) : isCertain(isCertain) {
-    if (isCertain != "CERTAIN" && isCertain != "NOTCERTAIN")
-      throw std::runtime_error("judgePrime, input parameter ERROR");
+  bool millerRabin(bigInt x, bigInt b);
 
-    Vis.resize(LISTLENGTH + 10);
-    for (int i = 2; i <= LISTLENGTH; i++) {
-      if (!Vis[i]) {
-        Vis[i] = i;
-        Prime.emplace_back(i);
-      }
-      int sz = Prime.size();
-      for (int j = 0; j < sz; j++) {
-        if (Prime[j] > Vis[i] || Prime[j] > LISTLENGTH / i) break;
-        Vis[i * Prime[j]] = Prime[j];
-      }
-    }
-  }
-  bool isPrime(ll x) {
-    if (x < 1e6) return (bool)(0 == Vis[x]);
-    if (x < 2) return false;
-    ll Lim = sqrt(x) + 1;
-    for (int i = 2; i <= Lim; i++)
-      if (!(x % i)) return false;
-    return true;
-  }
-  bool isPossiblyPrime(bigInt x) {
-    if (isCertain != "NOTCERTAIN")
-      throw std::runtime_error(
-          "judgePrime, be sure you call the right function.");
-    if (x < 1e6) return (bool)(x == Vis[bigInt::converseToLL(x)]);
-    return millerRabin(x, 2) && millerRabin(x, 325) && millerRabin(x, 9375) &&
-           millerRabin(x, 28178) && millerRabin(x, 450775) &&
-           millerRabin(x, 9780504) && millerRabin(x, 1795265022);
-  }
+ public:
+  judgePrime(const std::string& isCertain);
+  bool isPrime(ll x);
+  bool isPossiblyPrime(bigInt x);
 };
 
-/* 获得一个数的质因数
- */
 class primeFactor {
  private:
   judgePrime jPrime;
@@ -1465,71 +765,16 @@ class primeFactor {
   // 数字可以被分解为pi.first的pi.second次方的乘积
   std::vector<std::pair<ll, ll>> Pi;
 
-  ll pollardRho(ll x) {
-    ll s = 0, t = 0, Val = 1, c = 1ll * rand() % (x - 1) + 1;
-    int St = 0, Tar = 1;
-    while (true) {
-      for (St = 1; St <= Tar; St++) {
-        t = ((ll)t * t + c) % x;
-        Val = (ll)Val * llabs(t - s) % x;
-        if ((St % 127) == 0) {
-          ll d = numTheoryBasic::Gcd(Val, x);
-          if (d > 1) return d;
-        }
-      }
-      ll d = numTheoryBasic::Gcd(Val, x);
-      if (d > 1) return d;
-      Tar <<= 1;
-      s = t;
-      Val = 1;
-    }
-  }
+  ll pollardRho(ll x);
 
-  void getFactors(ll x) {
-    if (x < 2) return;
-    if (jPrime.isPossiblyPrime(x)) {
-      Pi.emplace_back(std::make_pair(x, 0));
-      return;
-    }
-    ll t = x;
-    while (t >= x) t = pollardRho(x);
-    while ((x % t) == 0) x /= t;
-    getFactors(x);
-    getFactors(t);
-  }
+  void getFactors(ll x);
 
  public:
-  primeFactor(const std::string& isCertain, ll x)
-      : isCertain(isCertain), jPrime("NOTCERTAIN") {
-    if (isCertain != "CERTAIN" && isCertain != "NOTCERTAIN")
-      throw std::runtime_error("primeFactor, input parameter ERROR");
+  primeFactor(const std::string& isCertain, ll x);
 
-    if (isCertain == "CERTAIN") {
-      ll Lim = sqrt(x) + 1;
-      for (int i = 2; i < Lim; i++) {
-        if (!(x % i)) {
-          Pi.emplace_back(std::make_pair(i, 0));
-          while (!(x % i)) x /= i, Pi[(int)(Pi.size() - 1)].second++;
-        }
-      }
-      if (x > 1) Pi.emplace_back(std::make_pair(x, 1));
-    } else {
-      getFactors(x);
-      std::set<ll> tmpFacSet;
-      for (auto Pa : Pi) tmpFacSet.insert(Pa.first);
-      Pi.clear();
-      for (auto Pa : tmpFacSet) Pi.emplace_back(std::make_pair(Pa, 0));
-      for (auto& Pa : Pi) {
-        while (!(x % Pa.first)) x /= Pa.first, Pa.second++;
-      }
-    }
-  }
-
-  std::vector<std::pair<ll, ll>> getFactors() { return Pi; }
+  std::vector<std::pair<ll, ll>> getFactors();
 };
 
-/* 组合数计算
- */
 class Combinations {
  private:
   // 内部的计算函数
@@ -1540,29 +785,15 @@ class Combinations {
     std::vector<bigInt> Fac;
     std::vector<bigInt> Inv;
     static std::shared_ptr<combinationsCalculation> comCalPtr;
-    combinationsCalculation(int Maxn) : Maxn(Maxn) {
-      Fac.resize(Maxn + 1);
-      Inv.resize(Maxn + 1);
-      Fac[0] = Inv[0] = 1;
-
-      for (int i = 1; i <= Maxn; i++) Fac[i] = Fac[i - 1] * i % MOD;
-
-      Inv[Maxn] = numTheoryBasic::fastPow(Fac[Maxn], MOD - 2, MOD);
-      for (int i = Maxn - 1; i >= 1; i--) Inv[i] = Inv[i + 1] * (i + 1LL) % MOD;
-    }
+    combinationsCalculation(int Maxn);
 
    public:
     ~combinationsCalculation(){};
     combinationsCalculation(const combinationsCalculation&) = delete;
     combinationsCalculation& operator=(const combinationsCalculation&) = delete;
-    static std::shared_ptr<combinationsCalculation> getInstance(int Maxn) {
-      if (nullptr == comCalPtr)
-        comCalPtr = std::shared_ptr<combinationsCalculation>(
-            new combinationsCalculation(Maxn));
-      return comCalPtr;
-    }
-    bigInt Fa(int i) { return Fac[i]; }
-    bigInt In(int i) { return Inv[i]; }
+    static std::shared_ptr<combinationsCalculation> getInstance(int Maxn);
+    bigInt Fa(int i);
+    bigInt In(int i);
   };
   // n >= m
   bigInt n, m;
@@ -1571,69 +802,88 @@ class Combinations {
 
   std::shared_ptr<combinationsCalculation> comCalPtr;
   // 求逆元
-  bigInt Inv(bigInt x, bigInt MOD) {
-    return numTheoryBasic::fastPow(x, MOD - 2, MOD);
-  }
+  bigInt Inv(bigInt x, bigInt MOD);
   // 卢卡斯
-  bigInt privateLucasPre(bigInt n, bigInt m) {
-    if (n < m) return 0;
-    bigInt Up = 1, Down = 1;
-    for (bigInt i = n - m + 1; i <= n; i = i + 1) Up = Up * i % MOD;
-    for (bigInt i = 1; i <= m; i = i + 1) Down = Down * i % MOD;
-    return Up * Inv(Down, MOD) % MOD;
-  }
-  bigInt Lucas(bigInt n, bigInt m) {
-    if (m == 0) return 1;
-    return privateLucasPre((bigInt)n % MOD, (bigInt)m % MOD) *
-           Lucas((bigInt)n / MOD, (bigInt)m / MOD) % MOD;
-  }
+  bigInt privateLucasPre(bigInt n, bigInt m);
+  bigInt Lucas(bigInt n, bigInt m);
 
  public:
-  Combinations(bigInt n, bigInt m) : n(n), m(m) {
-    comCalPtr = combinationsCalculation::getInstance((int)(5e2 + 10));
-  }
+  Combinations(bigInt n, bigInt m);
 
   // 比较大小
-  bool operator<(Combinations s) const {
-    bigInt TEN = 10ll;
-    return numTheoryBasic::bigIntLognX(TEN, n) -
-               numTheoryBasic::bigIntLognX(TEN, m) -
-               numTheoryBasic::bigIntLognX(TEN, n - m) <
-           numTheoryBasic::bigIntLognX(TEN, s.n) -
-               numTheoryBasic::bigIntLognX(TEN, s.m) -
-               numTheoryBasic::bigIntLognX(TEN, s.n - s.m);
-  }
+  bool operator<(Combinations s) const;
 
   // 求组合
-  bigInt C() {
-    if (n < m) return 0;
-    if (Com != -1) return Com;
-    if (n < 5e2)
-      return Com = comCalPtr->Fa(bigInt::converseToLL(n)) *
-                   comCalPtr->In(bigInt::converseToLL(m)) % MOD *
-                   comCalPtr->In(bigInt::converseToLL(n - m)) % MOD;
-    return Com = Lucas(n, m);
-  }
+  bigInt C();
   // 求排列
-  bigInt P() {
-    bigInt Factorial = 1, c = C() % MOD;
-    while (m != 0) {
-      Factorial = Factorial * m;
-      Factorial = Factorial % MOD;
-      m = m - 1;
-    }
-    return (c * Factorial) % MOD;
-  }
+  bigInt P();
 };
-std::shared_ptr<Combinations::combinationsCalculation>
-    Combinations::combinationsCalculation::comCalPtr = nullptr;
+
+/* Tarjan算法
+只有有向图有强连通分量，强连通分量内的点任意两点存在双向路径
+无向图中，随便删去一点，u到v可达，则称u和v点双连通
+随便删去一边，u到v可达，则称u和v边双连通
+*/
+class Tarjan {
+ private:
+  class tarjanSCC {
+   private:
+    const Graph& Gp;
+    std::shared_ptr<Graph> contractionGPtr;
+    // 时间戳和追溯值
+    std::vector<int> Dfn, Low;
+    // 栈，是否在栈中，节点所在强连通分量编号
+    std::vector<int> Stack, inStack, inSCC;
+    // 强连通分量中的点集
+    std::vector<std::vector<int>> SCC;
+    // 时间戳累加值，栈顶值，强连通分量个数
+    int dfnNum, stackTop, SCCCnt;
+    int tmpEdgeRecord;
+
+    void privateTarjanSCC(int x);
+    void SCCContraction();
+
+   public:
+    tarjanSCC(const Graph& Gp);
+    std::shared_ptr<Graph> gettarjanSCCPtr();
+    std::vector<int> getInSCC();
+    std::vector<std::vector<int>> getSCC();
+  };
+  const std::string& componentsType = "";
+  tarjanSCC tSCC;
+
+ public:
+  Tarjan(const Graph& Gp, int gN, const std::string& componentsType);
+  std::shared_ptr<Graph> gettarjanSCCPtr();
+  std::vector<int> getInSCC();
+  std::vector<std::vector<int>> getSCC();
+};
 
 }  // namespace kuinkerm
 
+#include "Combinations.h"
+#include "Dijkstra.h"
+#include "Graph.h"
+#include "LCT.h"
+#include "LISLDS.h"
+#include "STList.h"
+#include "TSP.h"
+#include "Tarjan.h"
+#include "Trie.h"
+#include "Vector.h"
 #include "bigInt.h"
 #include "binarySearch.h"
+#include "bitTree.h"
+#include "blockPartition.h"
+#include "disjointSet.h"
+#include "gameTheory.h"
+#include "hashTable.h"
+#include "judgePrime.h"
+#include "multiSet.h"
 #include "numTheoryBasic.h"
 #include "packDp.h"
-#include "Graph.h"
+#include "primeFactor.h"
 #include "priorityQueue.h"
+#include "segTree.h"
+#include "stringDel.h"
 #endif
