@@ -11,7 +11,7 @@ namespace kuinkerm {
    */
   Graph::Graph(int Maxn, int Maxe, int n, int m)
       : Maxn(Maxn), Maxe(Maxe << 1), n(n), m(m) {
-    Tot = 0;
+    Tot = 1;
     Next.resize(Maxe << 1);
     Head.resize(Maxn);
     Ver.resize(Maxe << 1);
@@ -27,6 +27,13 @@ namespace kuinkerm {
   */
   void Graph::Add(int x, int y, int w) {
     Ver[++Tot] = y, Next[Tot] = Head[x], Head[x] = Tot, Value[Tot] = w;
+  }
+
+  int Graph::getVertexNum(){
+      return n;
+  }
+  int Graph::getEdgeNum(){
+      return m;
   }
 
 }  // namespace kuinkerm

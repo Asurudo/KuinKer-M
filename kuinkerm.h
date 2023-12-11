@@ -238,8 +238,8 @@ class Graph {
   std::vector<int> Ver;
   // 边的权值信息，即 x ->(w) y中的w
   std::vector<int> Value;
-  // 有向边的总数
-  int Tot;
+  // 有向边的计数
+  int Tot = 1;
 
  public:
   /*  最大点数，最大边数，实际点数（可不填），实际边数（可不填）
@@ -254,6 +254,8 @@ class Graph {
       g.Add(42, 39, 9);
   */
   void Add(int x, int y, int w = 0);
+  int getVertexNum();
+  int getEdgeNum();
 };
 
 class Dijkstra {
@@ -838,25 +840,94 @@ class Tarjan {
     std::vector<std::vector<int>> SCC;
     // 时间戳累加值，栈顶值，强连通分量个数
     int dfnNum, stackTop, SCCCnt;
-    int tmpEdgeRecord;
 
     void privateTarjanSCC(int x);
     void SCCContraction();
 
    public:
     tarjanSCC(const Graph& Gp);
+    // 获得一个指向将强连通分量缩成点以后的图的指针
     std::shared_ptr<Graph> gettarjanSCCPtr();
+    // 获得节点所在强连通分量编号
     std::vector<int> getInSCC();
+    // 获得每个强连通分量
     std::vector<std::vector<int>> getSCC();
+  };
+  class tarjanEDCC {
+   private:
+    const Graph& Gp;
+    std::shared_ptr<Graph> contractionGPtr;
+    // 时间戳和追溯值
+    std::vector<int> Dfn, Low;
+    // 某条边是否是桥，节点所在边双连通分量编号
+    std::vector<int> isBridge, inEDCC;
+    // 所有的桥
+    std::vector<std::pair<int, int>> Bridge;
+    // 边双连通分量中的点集
+    std::vector<std::vector<int>> EDCC;
+    // 时间戳累加值，强连通分量个数
+    int dfnNum, EDCCCnt;
+
+    void privateTarjanEDCC(int x, int inEdge);
+    void priavateGetEDCC(int x);
+    void EDCCContraction();
+
+   public:
+    tarjanEDCC(const Graph& Gp);
+    // 获得一个指向将边双连通分量缩成点以后的图的指针
+    std::shared_ptr<Graph> gettarjanEDCCPtr();
+    // 获得节点所在边双连通分量编号
+    std::vector<int> getInEDCC();
+    // 获得每个边双连通分量
+    std::vector<std::vector<int>> getEDCC();
+  };
+  class tarjanVDCC {
+   private:
+    const Graph& Gp;
+    std::shared_ptr<Graph> contractionGPtr;
+    // 时间戳和追溯值
+    std::vector<int> Dfn, Low;
+
+    // 栈，是否在栈中，节点所在点双连通分量编号
+    std::vector<int> Stack, inStack, inVDCC;
+    // 某个点是否是割点，所有割点
+    std::vector<int> isCutoffPoint, cutoffPoint;
+    // 点双连通分量中的点集
+    std::vector<std::vector<int>> VDCC;
+    // newID[i] = x 表示原图i点变成了缩图x点
+    // oldID[x] = i 表示缩图x点中含有原图i点
+    std::vector<int> oldID, newID;
+    // 时间戳累加值，栈顶值，当前根节点, 点双联通分量个数
+    int dfnNum, stackTop, Root, VDCCCnt;
+
+    void privateTarjanVDCC(int x);
+    void VDCCContraction();
+
+   public:
+    tarjanVDCC(const Graph& Gp);
+    // 获得一个指向将点双连通分量缩成点以后的图的指针
+    std::shared_ptr<Graph> gettarjanVDCCPtr();
+    // 获得节点所在点双连通分量编号
+    std::vector<int> getInVDCC();
+    // 获得每个点双连通分量
+    std::vector<std::vector<int>> getVDCC();
   };
   const std::string& componentsType = "";
   tarjanSCC tSCC;
+  tarjanEDCC tEDCC;
+  tarjanVDCC tVDCC;
 
  public:
   Tarjan(const Graph& Gp, int gN, const std::string& componentsType);
   std::shared_ptr<Graph> gettarjanSCCPtr();
   std::vector<int> getInSCC();
   std::vector<std::vector<int>> getSCC();
+  std::shared_ptr<Graph> gettarjanEDCCPtr();
+  std::vector<int> getInEDCC();
+  std::vector<std::vector<int>> getEDCC();
+  std::shared_ptr<Graph> gettarjanVDCCPtr();
+  std::vector<int> getInVDCC();
+  std::vector<std::vector<int>> getVDCC();
 };
 
 }  // namespace kuinkerm
