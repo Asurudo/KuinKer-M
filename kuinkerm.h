@@ -224,6 +224,8 @@ class Graph {
   friend class expProceed;
   friend class TSP;
   friend class Tarjan;
+  friend class topoSort;
+  friend class connectingBlock;
 
  protected:
   // 最大的点数和边数
@@ -766,14 +768,11 @@ class primeFactor {
   std::string isCertain;
   // 数字可以被分解为pi.first的pi.second次方的乘积
   std::vector<std::pair<ll, ll>> Pi;
-
   ll pollardRho(ll x);
-
   void getFactors(ll x);
 
  public:
   primeFactor(const std::string& isCertain, ll x);
-
   std::vector<std::pair<ll, ll>> getFactors();
 };
 
@@ -930,6 +929,45 @@ class Tarjan {
   std::vector<std::vector<int>> getVDCC();
 };
 
+/* 拓扑排序
+ */
+class topoSort {
+ private:
+  // 辅助队列
+  std::queue<int> Q;
+  // deg[i]为点 i 的入度
+  std::vector<int> Deg;
+  // topoSequence为最终拓扑序
+  std::vector<int> topoSequence;
+  // 记录图的结点数
+  int gN;
+
+ public:
+  topoSort(const Graph& Gp, int gN);
+  bool haveCircle();
+  std::vector<int> getTopoSequence();
+};
+
+/* 图的联通块划分
+   联通块从0开始标号
+ */
+class connectingBlock {
+ private:
+  // 联通块标号
+  int blockCnt;
+  // belongToBlock[i]为i属于哪个连通块 ,同时也为标记数组
+  std::vector<int> belongToBlock;
+  // Blocks[i]为连通块i里的点数组
+  std::vector<std::vector<int>> Blocks;
+  void privateTraverseSubg(int x, const Graph& Gp);
+
+ public:
+  connectingBlock(const Graph& Gp, int gN);
+  std::vector<std::vector<int>> getBlocks();
+  std::vector<int> getBelongToBlock();
+  int getBlockCnt();
+};
+
 }  // namespace kuinkerm
 
 #include "Combinations.h"
@@ -946,6 +984,7 @@ class Tarjan {
 #include "binarySearch.h"
 #include "bitTree.h"
 #include "blockPartition.h"
+#include "connectingBlock.h"
 #include "disjointSet.h"
 #include "gameTheory.h"
 #include "hashTable.h"
@@ -957,4 +996,5 @@ class Tarjan {
 #include "priorityQueue.h"
 #include "segTree.h"
 #include "stringDel.h"
+#include "topoSort.h"
 #endif

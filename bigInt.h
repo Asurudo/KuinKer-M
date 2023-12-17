@@ -1,6 +1,7 @@
 #ifndef BIGINTH
 #define BIGINTH
 
+#include <iomanip>
 #include "kuinkerm.h"
 
 /*  大数
