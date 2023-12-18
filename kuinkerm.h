@@ -226,6 +226,7 @@ class Graph {
   friend class Tarjan;
   friend class topoSort;
   friend class connectingBlock;
+  friend class MSTKruskal;
 
  protected:
   // 最大的点数和边数
@@ -911,7 +912,7 @@ class Tarjan {
     // 获得每个点双连通分量
     std::vector<std::vector<int>> getVDCC();
   };
-  const std::string& componentsType = "";
+  const std::string componentsType = "";
   tarjanSCC tSCC;
   tarjanEDCC tEDCC;
   tarjanVDCC tVDCC;
@@ -968,6 +969,54 @@ class connectingBlock {
   int getBlockCnt();
 };
 
+/* 2-SAT
+   1-index
+   有一些命题，a,b,c,d....
+   给出一些规则，例如 a且b，非c，非c蕴含a...
+   询问是否有一种方案，使得规则全部进行合取后，成立。
+ */
+class twoSAT {
+ private:
+  int propNum;
+  std::shared_ptr<Graph> GPtr;
+  std::shared_ptr<Tarjan> tarPtr;
+  std::vector<int> Solution;
+  bool Rnt;
+  bool runCalled;
+
+ public:
+  twoSAT(int propNum, int ruleMaxNum);
+  void Or(int a, int b, bool aValue = true, bool bValue = true);
+  void And(int a, int b, bool aValue = true, bool bValue = true);
+  void Implies(int a, int b, bool aValue = true, bool bValue = true);
+  void True(int a);
+  void False(int a);
+  std::vector<int> getOneSolution();
+  bool isPossible();
+};
+
+/* MST
+   1-index
+ */
+class MSTKruskal {
+ private:
+  struct Edge {
+    int u;
+    int v;
+    ll w;
+    bool operator<(Edge b) { return w < b.w; }
+  };
+  // 需要用到的边数组
+  std::vector<Edge> e;
+  // 最小生成树权值和
+  ll MSTVal;
+  disjointSet Djs;
+
+ public:
+  MSTKruskal(const Graph& Gp);
+  ll getMSTVal();
+};
+
 }  // namespace kuinkerm
 
 #include "Combinations.h"
@@ -975,6 +1024,7 @@ class connectingBlock {
 #include "Graph.h"
 #include "LCT.h"
 #include "LISLDS.h"
+#include "MSTKruskal.h"
 #include "STList.h"
 #include "TSP.h"
 #include "Tarjan.h"
@@ -997,4 +1047,5 @@ class connectingBlock {
 #include "segTree.h"
 #include "stringDel.h"
 #include "topoSort.h"
+#include "twoSAT.h"
 #endif

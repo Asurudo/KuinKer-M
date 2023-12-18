@@ -64,6 +64,7 @@ Tarjan::Tarjan(const Graph& Gp, int gN, const std::string& componentsType)
       tSCC(componentsType == "SCC" ? Gp : Graph(0, 0, 0, 0)),
       tEDCC(componentsType == "EDCC" ? Gp : Graph(0, 0, 0, 0)),
       tVDCC(componentsType == "VDCC" ? Gp : Graph(0, 0, 0, 0)) {
+  // std::cout << componentsType << std::endl;
   if (gN != Gp.n)
     throw std::runtime_error(
         "Tarjan, the second parameter differs from the point number in G, "
@@ -87,6 +88,7 @@ std::shared_ptr<Graph> Tarjan::gettarjanSCCPtr() {
 }
 
 std::vector<int> Tarjan::getInSCC() {
+  // std::cout << componentsType << std::endl;
   if (componentsType != "SCC")
     throw std::runtime_error(
         "Tarjan, you call the wrong function, try VDCC or EDCC");
