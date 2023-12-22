@@ -1,3 +1,6 @@
 *.exe
 main.cpp
 .vscode
+EXAMPLE/
+FRAMWORK/
+libkuinkerm.a

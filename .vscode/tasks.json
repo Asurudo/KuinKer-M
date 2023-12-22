@@ -13,6 +13,8 @@
 				"${file}",
 				"-o",
 				"${fileDirname}\\${fileBasenameNoExtension}.exe",
+				"-L.",
+				"-lkuinkerm"
 			],
 			"options": {
 				"cwd": "${fileDirname}"

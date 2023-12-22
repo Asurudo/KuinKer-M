@@ -9,6 +9,12 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iomanip>
+#include <string>
+#include <vector>
+#include <utility>
+#include <istream>
+#include <ostream>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/hash_policy.hpp>
 #include <ext/pb_ds/priority_queue.hpp>
@@ -16,6 +22,7 @@
 #include <ext/rope>
 #include <memory>
 #include <type_traits>
+#include <vector>
 
 namespace kuinkerm {
 
@@ -26,8 +33,6 @@ inline int lowbit(int x) { return ((x) & (-x)); }
 
 class bigInt {
  private:
-  constexpr static int BASE = 1000000000;
-  constexpr static int BASEDIGITS = 9;
   using vll = std::vector<ll>;
   // value == 0 is represented by empty z
   std::vector<int> z;
@@ -50,6 +55,8 @@ class bigInt {
   static vll karatsubaMultiply(const vll& a, const vll& b);
 
  public:
+  constexpr static int BASE = 1000000000;
+  constexpr static int BASEDIGITS = 9;
   bigInt();
   bigInt(long long v);
   bigInt(const std::string& s);
@@ -72,7 +79,7 @@ class bigInt {
 
   bigInt operator*(const bigInt& v) const;
 
-  friend bigInt Sqrt(const bigInt& a1);
+  bigInt Sqrt(const bigInt& a1);
 
   bigInt operator/(const bigInt& v) const;
 
@@ -121,7 +128,7 @@ class bigInt {
 class numTheoryBasic {
  public:
   static bigInt STANDARDMOD();
-  static constexpr double STANDARDEPS();
+  static constexpr double STANDARDEPS(){ return 1e-5; }
 
   // 快速幂
   static bigInt fastPow(bigInt a, bigInt n,
@@ -1056,35 +1063,40 @@ class LCADoubling {
 
 }  // namespace kuinkerm
 
-#include "KuinKerM/Combinations.h"
-#include "KuinKerM/Dijkstra.h"
-#include "KuinKerM/Graph.h"
-#include "KuinKerM/LCT.h"
-#include "KuinKerM/LISLDS.h"
-#include "KuinKerM/MSTKruskal.h"
-#include "KuinKerM/STList.h"
-#include "KuinKerM/TSP.h"
-#include "KuinKerM/Tarjan.h"
-#include "KuinKerM/Trie.h"
-#include "KuinKerM/Vector.h"
-#include "KuinKerM/bigInt.h"
-#include "KuinKerM/binarySearch.h"
-#include "KuinKerM/bitTree.h"
-#include "KuinKerM/blockPartition.h"
-#include "KuinKerM/connectingBlock.h"
-#include "KuinKerM/disjointSet.h"
-#include "KuinKerM/eulerTreePath.h"
-#include "KuinKerM/gameTheory.h"
-#include "KuinKerM/hashTable.h"
-#include "KuinKerM/judgePrime.h"
-#include "KuinKerM/multiSet.h"
-#include "KuinKerM/numTheoryBasic.h"
-#include "KuinKerM/packDp.h"
-#include "KuinKerM/primeFactor.h"
-#include "KuinKerM/priorityQueue.h"
-#include "KuinKerM/segTree.h"
-#include "KuinKerM/stringDel.h"
-#include "KuinKerM/topoSort.h"
-#include "KuinKerM/twoSAT.h"
-#include "KuinKerM/LCADoubling.h"
+
+#ifdef KKMDEBUGMODE
+#include "KuinKerM/Combinations.cpp"
+#include "KuinKerM/Dijkstra.cpp"
+#include "KuinKerM/Graph.cpp"
+#include "KuinKerM/LCT.cpp"
+#include "KuinKerM/LISLDS.cpp"
+#include "KuinKerM/MSTKruskal.cpp"
+#include "KuinKerM/STList.cpp"
+#include "KuinKerM/TSP.cpp"
+#include "KuinKerM/Tarjan.cpp"
+#include "KuinKerM/Trie.cpp"
+#include "KuinKerM/Vector.cpp"
+#include "KuinKerM/bigInt.cpp"
+#include "KuinKerM/binarySearch.cpp"
+#include "KuinKerM/bitTree.cpp"
+#include "KuinKerM/blockPartition.cpp"
+#include "KuinKerM/connectingBlock.cpp"
+#include "KuinKerM/disjointSet.cpp"
+#include "KuinKerM/eulerTreePath.cpp"
+#include "KuinKerM/gameTheory.cpp"
+#include "KuinKerM/hashTable.cpp"
+#include "KuinKerM/judgePrime.cpp"
+#include "KuinKerM/multiSet.cpp"
+#include "KuinKerM/numTheoryBasic.cpp"
+#include "KuinKerM/packDp.cpp"
+#include "KuinKerM/primeFactor.cpp"
+#include "KuinKerM/priorityQueue.cpp"
+#include "KuinKerM/segTree.cpp"
+#include "KuinKerM/stringDel.cpp"
+#include "KuinKerM/topoSort.cpp"
+#include "KuinKerM/twoSAT.cpp"
+#include "KuinKerM/LCADoubling.cpp"
 #endif
+
+#endif
+
