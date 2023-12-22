@@ -227,6 +227,8 @@ class Graph {
   friend class topoSort;
   friend class connectingBlock;
   friend class MSTKruskal;
+  friend class eulerTreePath;
+  friend class LCADoubling;
 
  protected:
   // 最大的点数和边数
@@ -1017,6 +1019,41 @@ class MSTKruskal {
   ll getMSTVal();
 };
 
+/* 树的欧拉序
+   默认1为树根
+ */
+class eulerTreePath {
+ private:
+  int Pos = 0, oPos = 0;
+  std::vector<int> L, R, Re;
+  // oula[x]:每个结点的起始（第一个）欧拉序列 ore[i]:第i个欧拉序列对应的结点
+  std::vector<int> Ore, Oula;
+  void eulerInit(const Graph& Gp, int x, int Fa);
+
+ public:
+  eulerTreePath(const Graph& Gp);
+  std::vector<int> getEulerPath();
+};
+
+/* LCA
+   倍增实现
+   默认1为树根
+ */
+class LCADoubling {
+  private:
+  // f[x][k]表示x向上走2^k
+  std::vector<std::vector<int>> f;
+  // 深度数组，根节点深度为1
+  std::vector<int> d;
+  // dist[x]表示根节点到节点x的距离
+  std::vector<ll> Dist;
+  // 树的最大深度为2^bitmaxd
+  int bitMaxD;
+  public:
+  LCADoubling(const Graph& Gp);
+  int LCA(int x, int y);
+};
+
 }  // namespace kuinkerm
 
 #include "Combinations.h"
@@ -1036,6 +1073,7 @@ class MSTKruskal {
 #include "blockPartition.h"
 #include "connectingBlock.h"
 #include "disjointSet.h"
+#include "eulerTreePath.h"
 #include "gameTheory.h"
 #include "hashTable.h"
 #include "judgePrime.h"
@@ -1048,4 +1086,5 @@ class MSTKruskal {
 #include "stringDel.h"
 #include "topoSort.h"
 #include "twoSAT.h"
+#include "LCADoubling.h"
 #endif
