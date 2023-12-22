@@ -1,7 +1,7 @@
 #ifndef STRINGDELH
 #define STRINGDELH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* 字符串处理
  */

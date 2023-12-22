@@ -1,7 +1,7 @@
 #ifndef NUMTHEORYBASICH
 #define NUMTHEORYBASICH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* 数论基础算法
  */

@@ -1,7 +1,7 @@
 #ifndef PACKDPH
 #define PACKDPH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  背包dp：01背包，完全背包，多重背包
  */

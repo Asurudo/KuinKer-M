@@ -1,7 +1,7 @@
 #ifndef CONNECTINGBLOCKH
 #define CONNECTINGBLOCKH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  图的联通块划分
  */

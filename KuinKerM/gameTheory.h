@@ -1,7 +1,7 @@
 #ifndef GAMETHEORYH
 #define GAMETHEORYH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* 博弈
    输入一棵树，每次对手可以从自己所在的位置往子树移动一个位置。

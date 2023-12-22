@@ -1,7 +1,7 @@
 #ifndef MULTISETH
 #define MULTISETH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  旋转树
  */

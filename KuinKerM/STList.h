@@ -1,7 +1,7 @@
 #ifndef STLISTH
 #define STLISTH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* ST表
    注意，传入的vector是0-index，但是程序内为了方便处理使用的是1-index

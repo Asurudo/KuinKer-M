@@ -1,7 +1,7 @@
 #ifndef DISJOINTSETH
 #define DISJOINTSETH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  并查集
  */

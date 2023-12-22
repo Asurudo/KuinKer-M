@@ -1,7 +1,7 @@
 #ifndef GRAPHH
 #define GRAPHH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  存图
  */

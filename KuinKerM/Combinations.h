@@ -1,7 +1,7 @@
 #ifndef COMBINATIONSH
 #define COMBINATIONSH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* 组合数计算
  */

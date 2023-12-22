@@ -1,7 +1,7 @@
 #ifndef HASHTABLEH
 #define HASHTABLEH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  哈希
  */

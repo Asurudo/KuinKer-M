@@ -1,7 +1,7 @@
 #ifndef TRIEH
 #define TRIEH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* 字典树
  */

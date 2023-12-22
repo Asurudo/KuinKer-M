@@ -1,7 +1,7 @@
 #ifndef BLOCKPARTITIONH
 #define BLOCKPARTITIONH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  分块
  */

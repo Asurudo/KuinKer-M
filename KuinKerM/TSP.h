@@ -1,7 +1,7 @@
 #ifndef TSPH
 #define TSPH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  给出一个 n 个节点， m 条边的联通无向图，问从 1
  * 出发，游历所有点至少一次后返回，最少需经过的边权总和

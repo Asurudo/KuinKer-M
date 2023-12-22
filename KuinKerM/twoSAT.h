@@ -1,7 +1,7 @@
 #ifndef TWOSATH
 #define TWOSATH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  2-SAT
  */

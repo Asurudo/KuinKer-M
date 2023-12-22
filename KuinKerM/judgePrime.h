@@ -1,7 +1,7 @@
 #ifndef JUDGEPRIMEH
 #define JUDGEPRIMEH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* 判定素数
     2的64次方以内基本没问题

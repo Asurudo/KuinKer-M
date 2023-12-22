@@ -1,7 +1,7 @@
 #ifndef VECTORH
 #define VECTORH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  可变长数组
  */

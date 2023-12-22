@@ -1,7 +1,7 @@
 #ifndef LCADOUBLINGH
 #define LCADOUBLINGH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  LCA
  */

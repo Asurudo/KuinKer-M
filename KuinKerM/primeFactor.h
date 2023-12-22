@@ -1,7 +1,7 @@
 #ifndef PRIMEFACTORH
 #define PRIMEFACTORH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* 提取素因子
 */

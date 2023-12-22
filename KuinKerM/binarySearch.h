@@ -1,7 +1,7 @@
 #ifndef BINARYSEARCHH
 #define BINARYSEARCHH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 #include "numTheoryBasic.h"
 
 /* 二分判定

@@ -1,7 +1,7 @@
 #ifndef DIJKSTRAH
 #define DIJKSTRAH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  迪杰斯特拉单源最短路算法
     不支持负边

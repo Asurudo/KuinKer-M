@@ -2,7 +2,7 @@
 #define BIGINTH
 
 #include <iomanip>
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  大数
  */

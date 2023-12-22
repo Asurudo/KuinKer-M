@@ -1,7 +1,7 @@
 #ifndef LCTH
 #define LCTH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* Link-Cut Tree
    进化版并查集

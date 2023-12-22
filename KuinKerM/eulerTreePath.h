@@ -1,7 +1,7 @@
 #ifndef EULERTREEPATHH
 #define EULERTREEPATHH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  树的欧拉序
  */

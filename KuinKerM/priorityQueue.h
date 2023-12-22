@@ -1,7 +1,7 @@
 #ifndef PRIORITYQUEUEH
 #define PRIORITYQUEUEH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  优先队列
  */

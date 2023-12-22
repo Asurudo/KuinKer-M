@@ -1,7 +1,7 @@
 #ifndef TARJANH
 #define TARJANH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* Tarjan
  */

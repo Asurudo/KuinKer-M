@@ -1,7 +1,7 @@
 #ifndef SEGTREEH
 #define SEGTREEH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /* 线段树
  */

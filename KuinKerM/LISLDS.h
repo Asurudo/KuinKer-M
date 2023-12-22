@@ -1,7 +1,7 @@
 #ifndef LISLDSH
 #define LISLDSH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  LIS/LDS
  */

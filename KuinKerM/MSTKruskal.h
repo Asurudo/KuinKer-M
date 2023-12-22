@@ -1,7 +1,7 @@
 #ifndef MSTKRUSKALH
 #define MSTKRUSKALH
 
-#include "kuinkerm.h"
+#include "../kuinkerm.h"
 
 /*  拓扑排序
  */
