@@ -1,5 +1,5 @@
 *.exe
 main.cpp
-EXAMPLE
-FRAMWORK
+EXAMPLE/
+FRAMWORK/
 .vscode
