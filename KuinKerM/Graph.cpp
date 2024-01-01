@@ -25,8 +25,9 @@ namespace kuinkerm {
       g.Add(39, 42, 9);
       g.Add(42, 39, 9);
   */
-  void Graph::Add(int x, int y, int w) {
+  int Graph::Add(int x, int y, ll w) {
     Ver[++Tot] = y, Next[Tot] = Head[x], Head[x] = Tot, Value[Tot] = w;
+    return Tot;
   }
 
   int Graph::getVertexNum(){

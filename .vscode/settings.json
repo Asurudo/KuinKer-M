@@ -87,7 +87,14 @@
         "syncstream": "cpp",
         "variant": "cpp",
         "rope": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "buffer": "cpp",
+        "executor": "cpp",
+        "internet": "cpp",
+        "io_context": "cpp",
+        "netfwd": "cpp",
+        "socket": "cpp",
+        "timer": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

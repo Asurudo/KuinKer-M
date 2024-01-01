@@ -9,19 +9,18 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iomanip>
-#include <string>
-#include <vector>
-#include <utility>
-#include <istream>
-#include <ostream>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/hash_policy.hpp>
 #include <ext/pb_ds/priority_queue.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 #include <ext/rope>
+#include <iomanip>
+#include <istream>
 #include <memory>
+#include <ostream>
+#include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace kuinkerm {
@@ -128,7 +127,7 @@ class bigInt {
 class numTheoryBasic {
  public:
   static bigInt STANDARDMOD();
-  static constexpr double STANDARDEPS(){ return 1e-5; }
+  static constexpr double STANDARDEPS() { return 1e-5; }
 
   // 快速幂
   static bigInt fastPow(bigInt a, bigInt n,
@@ -236,6 +235,7 @@ class Graph {
   friend class MSTKruskal;
   friend class eulerTreePath;
   friend class LCADoubling;
+  friend class netWorkFlow;
 
  protected:
   // 最大的点数和边数
@@ -249,7 +249,7 @@ class Graph {
   // 边的到达信息，即 x ->(w) y中的y
   std::vector<int> Ver;
   // 边的权值信息，即 x ->(w) y中的w
-  std::vector<int> Value;
+  std::vector<ll> Value;
   // 有向边的计数
   int Tot = 1;
 
@@ -265,7 +265,8 @@ class Graph {
       g.Add(39, 42, 9);
       g.Add(42, 39, 9);
   */
-  void Add(int x, int y, int w = 0);
+  // Add 返回 tot
+  int Add(int x, int y, ll w = 0);
   int getVertexNum();
   int getEdgeNum();
 };
@@ -1047,7 +1048,7 @@ class eulerTreePath {
    默认1为树根
  */
 class LCADoubling {
-  private:
+ private:
   // f[x][k]表示x向上走2^k
   std::vector<std::vector<int>> f;
   // 深度数组，根节点深度为1
@@ -1056,18 +1057,99 @@ class LCADoubling {
   std::vector<ll> Dist;
   // 树的最大深度为2^bitmaxd
   int bitMaxD;
-  public:
+
+ public:
   LCADoubling(const Graph& Gp);
   int LCA(int x, int y);
 };
 
-}  // namespace kuinkerm
+/* 网络流
+   网络流就是在不超过流量限制的前提下，流从源点源源不断地产生，流经整个网络，最终全部归于汇点的模型。
+   使得整个网络的流量总和最大的问题称为最大流问题，此时的流量称为网络的最大流量。
+ */
+class netWorkFlow {
+ private:
+  class edmondsKarpMaxFlow {
+   private:
+    std::shared_ptr<Graph> GPtr;
+    // Incf[i]为i在此趟BFS流过的流量
+    // Pre[i]为当前流量路径中的节点i的父亲是谁，也就是谁把流给他的
+    std::vector<ll> Vis, Incf, Pre;
+    // s起点，t终点，maxflow最大流流量
+    ll s, t, maxFlow = 0;
+    // 寻找增广路
+    bool getAugPaths();
+    void UpdateMaxflow();
 
+   public:
+    edmondsKarpMaxFlow(int s, int t, int Maxn, int Maxe);
+    ll getMaxFlow();
+    std::shared_ptr<Graph> getFlowPtr();
+    void addEdge(int x, int y, ll Value);
+  };
+  class dinicMaxFlow {
+   private:
+    std::shared_ptr<Graph> GPtr;
+    // d[s] = 1,未访问过的点i的d[i]=0,d值越大说明越深
+    std::vector<ll> d;
+    // s起点，t终点，maxflow最大流流量
+    ll s, t, maxFlow = 0;
+    // 当前弧优化
+    std::vector<int> Now;
+    // bfs求层次
+    bool getAugPaths();
+    ll UpdateMaxflow(int x, ll Flow);
+
+   public:
+    dinicMaxFlow(int s, int t, int Maxn, int Maxe);
+    ll getMaxFlow();
+    std::shared_ptr<Graph> getFlowPtr();
+    void addEdge(int x, int y, ll Value);
+  };
+  class costFlow {
+   private:
+    std::shared_ptr<Graph> GPtr;
+    // incf[i]为i在此趟BFS流过的流量
+    // pre[i]为当前流量路径中的节点i的父亲是谁，也就是谁把流给他的
+    std::vector<ll> Vis, Incf, Pre;
+    std::vector<ll> Cost;
+    // spfa的单源距离
+    std::vector<ll> d;
+    // s起点，t终点，maxflow最大流流量
+    ll s, t, maxFlow = 0, minCost = 0;
+    std::shared_ptr<Graph> Gp;
+    // 寻找增广路
+    bool getAugPaths();
+    void UpdateCostflow();
+    public:
+    costFlow(int s, int t, int Maxn, int Maxe);
+    ll getMaxFlow();
+    ll getMinCost();
+    std::shared_ptr<Graph> getFlowPtr();
+    void addEdge(int x, int y, ll Value, ll edgeCost);
+  };
+  edmondsKarpMaxFlow EKMF;
+  dinicMaxFlow dinicMF;
+  costFlow CMF;
+  std::string algorithmType = "";
+
+ public:
+  void addEdgeMaxFlow(int x, int y, ll Value);
+  void addEdgeCostFlow(int x, int y, ll Value, ll Cost);
+  ll getMaxFlow();
+  ll getMinCost();
+  std::shared_ptr<Graph> getFlowPtr();
+  netWorkFlow(int s, int t, int Maxn, int Maxe,
+              std::string algorithmType = "EK");
+};
+
+}  // namespace kuinkerm
 
 #ifdef KKMDEBUGMODE
 #include "KuinKerM/Combinations.cpp"
 #include "KuinKerM/Dijkstra.cpp"
 #include "KuinKerM/Graph.cpp"
+#include "KuinKerM/LCADoubling.cpp"
 #include "KuinKerM/LCT.cpp"
 #include "KuinKerM/LISLDS.cpp"
 #include "KuinKerM/MSTKruskal.cpp"
@@ -1087,6 +1169,7 @@ class LCADoubling {
 #include "KuinKerM/hashTable.cpp"
 #include "KuinKerM/judgePrime.cpp"
 #include "KuinKerM/multiSet.cpp"
+#include "KuinKerM/netWorkFlow.cpp"
 #include "KuinKerM/numTheoryBasic.cpp"
 #include "KuinKerM/packDp.cpp"
 #include "KuinKerM/primeFactor.cpp"
@@ -1095,8 +1178,6 @@ class LCADoubling {
 #include "KuinKerM/stringDel.cpp"
 #include "KuinKerM/topoSort.cpp"
 #include "KuinKerM/twoSAT.cpp"
-#include "KuinKerM/LCADoubling.cpp"
 #endif
 
 #endif
-

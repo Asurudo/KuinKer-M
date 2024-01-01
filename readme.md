@@ -46,7 +46,8 @@ KuinKer-M追求简单好用、高鲁棒性，高安全性和低耦合性。
 28. MST(Kruskal实现)
 29. 树的欧拉序                                  
 30. LCA(倍增实现)
-31. ... ...TBC
+31. 网络流（EK，Dinic，EK+SPFA）
+32. ... ...TBC
 
 ## [**KuinKer-M 使用指南**](https://asurudo.top/s/z5RAU2i4R)
 
