@@ -1,6 +1,7 @@
-*.exe
+main.exe
 main.cpp
 .vscode
 EXAMPLE/
 FRAMWORK/
 *.a
+*.txt
