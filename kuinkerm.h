@@ -378,8 +378,8 @@ class disjointSet {
 
 class blockPartition {
  private:
-  // 数组最大长度，块的个数
-  int Maxn, blockNum;
+  // 块的个数
+  int blockNum;
   // 输入数组
   std::vector<ll> a;
 
@@ -394,7 +394,7 @@ class blockPartition {
   std::vector<int> Pos;
 
  public:
-  blockPartition(const std::vector<ll>& a, int Maxn);
+  blockPartition(const std::vector<ll>& a);
 
   // 将区间[l, r]加上 Value
   void change(int l, int r, ll Value);
@@ -413,20 +413,20 @@ class hashTable {
 
  public:
   // 插入一条哈希数据
-  void Insert(T1 x, T2 y) const;
+  void Insert(T1 x, T2 y) { hTable.insert(std::make_pair(x, y)); }
 
   // 用下标访问哈希数据，如 table[x] 就是键值的对应数据
-  T2& operator[](T1 x);
-  const T2& operator[](T1 x) const;
+  T2& operator[](T1 x) { return hTable[x]; }
+  const T2& operator[](T1 x) const { return hTable[x]; }
 
   // 返回一个指针，first为键值，second为数据
-  htIter Find(T1 x) const;
-  htIter notFound() const;
+  htIter Find(T1 x) const { return hTable.find(x); }
+  htIter notFound() const { return hTable.end(); }
   // 删除键值x的哈希数据
-  void Erase(T1 x) const;
-  void Clear() const;
-  int Size() const;
-  bool Empty() const;
+  void Erase(T1 x) const { hTable.erase(x); }
+  void Clear() const { hTable.clear(); }
+  int Size() const { return hTable.size(); }
+  bool Empty() const { return hTable.empty(); }
 };
 
 template <typename T, typename F = void>
@@ -578,7 +578,7 @@ class bitTree {
 
  public:
   bitTree(const std::vector<ll>& a);
-  bitTree(const std::vector<std::vector<ll>> a2);
+  bitTree(const std::vector<std::vector<ll>>& a2);
 
   void Add(int x, ll d);
   void Add(int x, int y, ll d);

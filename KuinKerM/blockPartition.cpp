@@ -6,7 +6,7 @@
 /*  分块
  */
 namespace kuinkerm {
-blockPartition::blockPartition(const std::vector<ll>& a, int Maxn) : a(a), Maxn(Maxn) {
+blockPartition::blockPartition(const std::vector<ll>& a) : a(a){
   blockNum = std::sqrt(a.size());
   // 块怎么分搞不懂看lyd p224
   for (int i = 1; i <= blockNum; i++) {

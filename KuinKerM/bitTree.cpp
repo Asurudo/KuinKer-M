@@ -13,7 +13,7 @@ namespace kuinkerm {
     c.resize(n << 2);
     for (int i = 1; i <= n; i++) Add(i, a[i - 1]);
   }
-  bitTree::bitTree(const std::vector<std::vector<ll>> a2) : a2(a2) {
+  bitTree::bitTree(const std::vector<std::vector<ll>>& a2) : a2(a2) {
     n = a2.size();
     if (!n) return;
     m = a2[0].size();
@@ -25,8 +25,8 @@ namespace kuinkerm {
         throw std::runtime_error("bitTree, you need to offer a matrix");
     }
 
-    for (int i = 1; i <= n; i++)
-      for (int j = 1; j <= m; j++) Add(i, j, a2[i - 1][j - 1]);
+    for (int i = 0; i < n; i++)
+      for (int j = 0; j < m; j++) Add(i, j, a2[i][j]);
   }
 
   void bitTree::Add(int x, ll d) {
