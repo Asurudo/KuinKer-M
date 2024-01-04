@@ -269,6 +269,8 @@ class Graph {
   int Add(int x, int y, ll w = 0);
   int getVertexNum();
   int getEdgeNum();
+  void setGpPointNumber(int n);
+  void setGpEdgeNumber(int m);
 };
 
 class Dijkstra {
@@ -306,8 +308,6 @@ class Dijkstra {
 
 class TSP {
  private:
-  // 跑TSP算法的图
-  const Graph& Gp;
   // distance[xPoint][yPoint] 表示 xPoint 到 yPoint 的最小距离
   std::vector<std::vector<ll>> Distance;
   std::vector<std::vector<ll>> Dp;
@@ -318,7 +318,7 @@ class TSP {
  public:
   /* 图构造时直接开始跑TSP
    */
-  TSP(const Graph& Gp);
+  TSP(const Graph& Gp, int gN);
   /*  返回最小边权加和
    */
   ll getMinEdgeValueSum();

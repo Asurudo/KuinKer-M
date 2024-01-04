@@ -9,6 +9,19 @@
 */
 namespace kuinkerm {
 
+template class binarySearch<int>;
+template class binarySearch<bigInt>;
+template class binarySearch<short>;
+template class binarySearch<long>;
+template class binarySearch<long long>;
+template class binarySearch<unsigned int>;
+template class binarySearch<unsigned short>;
+template class binarySearch<unsigned long>;
+template class binarySearch<unsigned long long>;
+template class binarySearch<double>;
+template class binarySearch<long double>;
+template class binarySearch<float>;
+
 template <typename T>
 T binarySearch<T>::leftIntBSearch(T l, T r, std::function<bool(T)> Judge) {
   r += 1;

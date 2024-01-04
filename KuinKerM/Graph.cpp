@@ -36,7 +36,8 @@ namespace kuinkerm {
   int Graph::getEdgeNum(){
       return m;
   }
-
+  void Graph::setGpPointNumber(int n) { this->n = n; }
+  void Graph::setGpEdgeNumber(int m) { this->m = m; }
 }
 
 #endif

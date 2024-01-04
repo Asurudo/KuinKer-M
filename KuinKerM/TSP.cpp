@@ -10,7 +10,12 @@ namespace kuinkerm {
 
 /* 图构造时直接开始跑TSP
  */
-TSP::TSP(const Graph& Gp) : Gp(Gp) {
+TSP::TSP(const Graph& Gp, int gN){
+  if (gN != Gp.n)
+    throw std::runtime_error(
+        "TSP, the second parameter differs from the point number "
+        "in G, "
+        "check it");
   Dp.resize(Gp.Maxn);
   Distance.resize(Gp.Maxn);
   for (int i = 0; i < Gp.Maxn; i++) {
