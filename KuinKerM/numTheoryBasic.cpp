@@ -26,19 +26,6 @@ bigInt numTheoryBasic::fastPow(bigInt a, bigInt n, bigInt MOD) {
   return Res;
 }
 
-// 最大公因数
-template <typename T>
-T numTheoryBasic::Gcd(T a, T b) {
-  if (b == 0) return a;
-  return Gcd(b, a % b);
-}
-
-// 最小公倍数
-template <typename T>
-T numTheoryBasic::Lcm(T a, T b) {
-  return a / Gcd(a, b) * b;
-}
-
 bigInt numTheoryBasic::bigIntLognX(bigInt n, bigInt X) {
   if (n <= 0 || X <= 0) return std::numeric_limits<bigInt>::quiet_NaN();
 

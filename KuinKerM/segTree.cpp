@@ -118,8 +118,8 @@ namespace kuinkerm {
 
   void segTree::Add(int l, int r, ll d) { privateAdd(1, l + 1, r + 1, d); }
   ll segTree::askSum(int l, int r) { return privateAskSum(1, l + 1, r + 1); }
-  ll segTree::askMax(int p, int l, int r) { return privateAskMax(1, l + 1, r + 1); }
-  ll segTree::askMin(int p, int l, int r) { return privateAskMin(1, l + 1, r + 1); }
+  ll segTree::askMax(int l, int r) { return privateAskMax(1, l + 1, r + 1); }
+  ll segTree::askMin(int l, int r) { return privateAskMin(1, l + 1, r + 1); }
   // 返回第一个小于等于x的下标
   // 返回-2就是没找到
   ll segTree::askFirstLess(int l, int r, ll x) {

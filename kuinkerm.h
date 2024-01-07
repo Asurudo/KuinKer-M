@@ -135,11 +135,16 @@ class numTheoryBasic {
 
   // 最大公因数
   template <typename T>
-  static T Gcd(T a, T b);
+  static T Gcd(T a, T b) {
+    if (b == 0) return a;
+    return Gcd(b, a % b);
+  }
 
   // 最小公倍数
   template <typename T>
-  static T Lcm(T a, T b);
+  static T Lcm(T a, T b) {
+    return a / Gcd(a, b) * b;
+  }
 
   static bigInt bigIntLognX(bigInt n, bigInt X);
   static double doubleLognX(double n, double X);
@@ -438,37 +443,65 @@ class priorityQueue {
       std::is_void<F>::value,
       __gnu_pbds::priority_queue<T, Comparator, heapTag>,
       __gnu_pbds::priority_queue<T, F, heapTag>>::type;
-  using pqIter = typename pqType::point_iterator;
-  // 传入的是否是基本类型，是否重载了调用运算符（F是否为空）
-  bool isFundamentalType, wantUseTemplate;
 
   // 对值的映射，方便以后根据值进行查询和更改
   // std::map<T, std::set<pqIter>> val2PointerMp;
 
   std::unique_ptr<pqType> Pq;
+  template <typename U = T, typename V = F>
+  typename std::enable_if<
+      std::is_fundamental<U>::value && std::is_void<V>::value, void>::type
+  initializePriorityQueue() {
+    Pq = std::make_unique<pqType>(std::less<T>());
+  }
+
+  template <typename U = T, typename V = F>
+  typename std::enable_if<
+      !std::is_fundamental<U>::value || !std::is_void<V>::value, void>::type
+  initializePriorityQueue() {
+    Pq = std::make_unique<pqType>();
+  }
 
  public:
-  priorityQueue();
+  using pqIter = typename pqType::point_iterator;
+  priorityQueue() {
+    if (!std::is_fundamental<T>::value && std::is_void<F>::value) {
+      throw std::runtime_error(
+          "priorityQueue, input type is not the fundamental type and the "
+          "comparision function or struct is not provided.");
+      return;
+    } else
+      initializePriorityQueue();
+  }
 
-  priorityQueue(Comparator f);
+  priorityQueue(Comparator f) {
+    if (!std::is_void<F>::value) {
+      throw std::runtime_error(
+          "priorityQueue, both comparision function and struct are existed, "
+          "delete one of them");
+      return;
+    }
+    Pq =
+        std::make_unique<__gnu_pbds::priority_queue<T, Comparator, heapTag>>(f);
+  }
 
-  void Push(T x);
+  pqIter Push(T x) { return Pq->push(x); }
 
-  void Pop();
+  void Pop() { Pq->pop(); }
 
-  T Top();
+  T Top() { return Pq->top(); }
 
-  int Size();
+  int Size() { return Pq->size(); }
 
-  bool Empty();
+  bool Empty() { return Pq->empty(); }
 
-  void Claer();
+  void Claer() { Pq->clear(); }
 
   // 传入一个指针，将Iter指向的值改为x后，再重新维护堆
-  void Modify(pqIter Iter, const T x);
+  void Modify(pqIter Iter, const T x) { Pq->modify(Iter, x); }
 
   // 将otherPq并入调用该方法的堆，并清空otherPq
-  void Join(priorityQueue& otherPq);
+  void Join(priorityQueue& otherPq) { Pq->join(*otherPq.Pq); }
 };
 
 template <typename T, typename F = void>
@@ -484,10 +517,7 @@ class multiSet {
       __gnu_pbds::tree<PT, __gnu_pbds::null_type, std::less<std::pair<F, int>>,
                        mSTag,
                        __gnu_pbds::tree_order_statistics_node_update>>::type;
-  using mSIter = typename mSType::point_iterator;
 
-  // 传入的是否是基本类型，是否重载了调用运算符（F是否为空）
-  bool isFundamentalType, wantUseTemplate;
   std::function<bool(const T&, const T&)> userComparator;
   // 时间戳
   int Dfn = 0;
@@ -496,39 +526,119 @@ class multiSet {
   // std::map<T, std::set<pqIter>> val2PointerMp;
 
   std::unique_ptr<mSType> Ms;
+  // template <typename U = T, typename V = F>
+  // typename std::enable_if<
+  //     std::is_fundamental<U>::value && std::is_void<V>::value, void>::type
+  // initializePriorityQueue() {
+  //   Pq = std::make_unique<mSType>(std::less<T>());
+  // }
+
+  // template <typename U = T, typename V = F>
+  // typename std::enable_if<
+  //     !std::is_fundamental<U>::value || !std::is_void<V>::value, void>::type
+  // initializePriorityQueue() {
+  //   Pq = std::make_unique<mSType>();
+  // }
 
  public:
-  multiSet();
+  using mSIter = typename mSType::point_iterator;
+  multiSet() {
+    if (!std::is_fundamental<T>::value && std::is_void<F>::value) {
+      throw std::runtime_error(
+          "multiSet, input type is not the fundamental type and the "
+          "comparision function or struct is not provided.");
+      return;
+    } else
+      // initializePriorityQueue();
+      std::make_unique<mSType>();
+  }
 
-  multiSet(std::function<bool(const T&, const T&)> f);
+  multiSet(std::function<bool(const T&, const T&)> f) : userComparator(f) {
+    if (!std::is_void<F>::value) {
+      throw std::runtime_error(
+          "multiSet, both comparision function and struct are existed, delete "
+          "one of them");
+      return;
+    }
+    Ms = std::make_unique<__gnu_pbds::tree<
+        PT, __gnu_pbds::null_type, std::function<bool(const PT&, const PT&)>,
+        mSTag, __gnu_pbds::tree_order_statistics_node_update>>(
+        [f](const PT& x, const PT& y) -> bool {
+          if (f(x.first, y.first) ^ f(y.first, x.first))
+            return f(x.first, y.first);
+          else
+            return (bool)(x.second < y.second);
+        });
+  }
 
-  int Size();
+  int Size() { return Ms->size(); }
 
-  bool Empty();
+  bool Empty() { return Ms->empty(); }
 
-  void Clear();
+  void Clear() { Ms->clear(); }
 
-  void Insert(T x);
+  mSIter Insert(T x) { return (Ms->insert({x, ++Dfn})).first; }
 
-  void Erase(T x);
+  void Erase(T x) { Ms->erase(Ms->lower_bound({x, 0})); }
 
-  int isRank(T x);
+  int isRank(T x) {
+    if (rankIs(Ms->order_of_key({x, 0}) + 1) != x) return -1;
+    return Ms->order_of_key({x, 0}) + 1;
+  }
 
-  T rankIs(int a);
+  bool Exist(T x) { return Ms->lower_bound({x, 0}) != Ms->end(); }
 
-  T Prev(T x);
+  T rankIs(int a) { return Ms->find_by_order(a - 1)->first; }
+
+  // T Prev(T x) { return Ms->lower_bound({x-1, 0})->first; }
+  T Next(T x) {
+    if (false == this->Exist(x))
+      throw std::runtime_error(
+          "multiSet, x is not exist. make sure the x exists.");
+
+    T Value = Ms->lower_bound({x, INF})->first;
+    if (false == this->Exist(Value))
+      throw std::runtime_error(
+          "multiSet, Next is not exist. make sure the Next exists.");
+    return Value;
+  }
 
   // 返回第一个大于等于x的元素
-  T lowerBound(T x);
+  T lowerBound(T x) {
+    T Value = Ms->lower_bound({x, 0})->first;
+    // std::cout << (int)(Ms->lower_bound({x, 0}) == Ms->end()) << std::endl;
+    if (false == this->Exist(Value))
+      throw std::runtime_error(
+          "multiSet, lowerBound is not exist. make sure the lowerBound "
+          "exists.");
+    return Value;
+  }
 
   // 返回第一个大于x的元素
-  T upperBound(T x);
+  T upperBound(T x) {
+    T Value = Ms->lower_bound({x, INF})->first;
+    if (false == this->Exist(Value))
+      throw std::runtime_error(
+          "multiSet, upperBound is not exist. make sure the upperBound "
+          "exists.");
+    return Value;
+  }
 
   // 确保被合并set的所有元素大于合并set的所有元素，合并后清空
-  void Join(multiSet& otherMs);
+  void Join(multiSet& otherMs) {
+    if (userComparator(otherMs.rankIs(1), this->rankIs(this->Size())))
+      throw std::runtime_error(
+          "multiSet, Join failed. The necessary condition for merging two sets "
+          "is that all elements in the merging set must be smaller than all "
+          "elements in the target set.");
+    Ms->join(*otherMs.Ms);
+  }
 
   // 分裂，小于x的元素留住，大于等于x的元素分裂出去
-  void Split(T x, multiSet& otherMs);
+  void Split(T x, multiSet& otherMs) {
+    otherMs.Clear();
+    Ms->split({x, 0}, *otherMs.Ms);
+  }
 };
 
 template <typename T>
@@ -536,35 +646,43 @@ class Vector {
  private:
   using rpIter = typename __gnu_cxx::rope<T>::iterator;
   __gnu_cxx::rope<T> Rp;
+  Vector(__gnu_cxx::rope<T> Rp) : Rp(Rp) {}
 
  public:
-  Vector();
-  Vector(__gnu_cxx::rope<T> Rp);
+  Vector() {}
+  Vector(const Vector<T>& v) : Rp(v.Rp) {}
 
-  const T operator[](std::size_t index) const;
+  const T operator[](std::size_t index) const { return Rp[index]; }
 
-  void pushBack(T x);
-  void popBack(T x);
+  void pushBack(T x) { Rp.push_back(x); }
+  void popBack(T x) { Rp.pop_back(); }
 
   // 从 Pos 位置开始插入 x
-  void Insert(int Pos, Vector<T> x);
+  void Insert(int Pos, Vector<T> x) { Rp.insert(Pos, x); }
 
   // 从 Pos 位置开始删掉长度为 Len 的元素
-  void Erase(int Pos, int Len);
+  void Erase(int Pos, int Len) { Rp.erase(Pos, Len); }
 
   // 从 Pos 位置开始提取长度为 Len 的子串，返回一个 Vector
-  Vector<T> Substr(int Pos, int Len);
+  Vector<T> Substr(int Pos, int Len) { return Vector<T>(Rp.substr(Pos, Len)); }
 
   // 替换 Pos 处的元素为 x
-  void Replace(int Pos, T x);
+  void Replace(int Pos, T x) { Rp.replace(Pos, x); }
 
   // 从 Pos 位置开始替换为 x
-  void Replace(int L, Vector<T> x);
-  void Clear();
-  int Size();
-  bool Empty();
-
-  Vector<T> operator+(const Vector<T>& other) const;
+  void Replace(int L, Vector<T> x) { Rp.replace(L, x.Size(), x); }
+  void Clear() { Rp.clear(); }
+  int Size() { return Rp.size(); }
+  bool Empty() { return Rp.empty(); }
+  Vector<T>& operator=(const Vector<T>& other) {
+    if (this != &other) {
+      Rp = other.Rp;
+    }
+    return *this;
+  }
+  Vector<T> operator+(const Vector<T>& other) const {
+    return Vector<T>(Rp + other.Rp);
+  }
 };
 
 class bitTree {
@@ -575,6 +693,8 @@ class bitTree {
   std::vector<ll> c;
   std::vector<std::vector<ll>> a2;
   std::vector<std::vector<ll>> c2;
+  ll Ask(int x);
+  ll Ask(int x, int y);
 
  public:
   bitTree(const std::vector<ll>& a);
@@ -582,8 +702,6 @@ class bitTree {
 
   void Add(int x, ll d);
   void Add(int x, int y, ll d);
-  ll Ask(int x);
-  ll Ask(int x, int y);
   ll getSum(int l, int r);
   ll getSum(int x1, int y1, int x2, int y2);
 };
@@ -623,10 +741,10 @@ class segTree {
 
   void Add(int l, int r, ll d);
   ll askSum(int l, int r);
-  ll askMax(int p, int l, int r);
-  ll askMin(int p, int l, int r);
+  ll askMax(int l, int r);
+  ll askMin(int l, int r);
   // 返回第一个小于等于x的下标
-  // 返回-2就是没找到
+  // 返回-1就是没找到
   ll askFirstLess(int l, int r, ll x);
 };
 
@@ -1121,7 +1239,8 @@ class netWorkFlow {
     // 寻找增广路
     bool getAugPaths();
     void UpdateCostflow();
-    public:
+
+   public:
     costFlow(int s, int t, int Maxn, int Maxe);
     ll getMaxFlow();
     ll getMinCost();

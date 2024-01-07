@@ -1,7 +1,6 @@
 #ifndef GAMETHEORYCPP
 #define GAMETHEORYCPP
 
-
 #include "../kuinkerm.h"
 
 /* 博弈
