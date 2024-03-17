@@ -1,5 +1,7 @@
 main.exe
 EXAMPLE/
 FRAMWORK/
+.vscode
 *.a
 *.o
+lib
