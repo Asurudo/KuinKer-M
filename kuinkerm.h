@@ -1264,6 +1264,8 @@ class netWorkFlow {
 
 }  // namespace kuinkerm
 
+
+#ifdef DEBUG
 #include "src/Combinations.cpp"
 #include "src/Dijkstra.cpp"
 #include "src/Graph.cpp"
@@ -1296,5 +1298,6 @@ class netWorkFlow {
 #include "src/stringDel.cpp"
 #include "src/topoSort.cpp"
 #include "src/twoSAT.cpp"
+#endif
 
 #endif

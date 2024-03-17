@@ -1,6 +1,7 @@
 #include <iostream>
-#include "kuinkerm.h"
+#define DEBUG
 
+#include "kuinkerm.h"
 using namespace std;
 using namespace kuinkerm;
 
